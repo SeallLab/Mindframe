@@ -81,7 +81,7 @@ Each task carries:
 
 From the daily list you can filter to **All**, **Active**, or **Done**, and
 act on any task directly by either marking it **complete**, **delaying** it to a new date,
-or **skiping** it, all without leaving the calendar.
+or **skipping** it, all without leaving the calendar.
 
 Tapping into a task opens a detail view with full context: time and
 duration, subtasks, status. From there you can edit, delay, or delete it, with
@@ -255,8 +255,6 @@ guidance fits you rather than a generic average:
   warnings should surface for you specifically.
 - **Recommendation mode** — general or task-based, explained in plain
   language right in the toggle so the choice is easy to make.
-- **Recommendation display settings** — how many recommendations you see at
-  once, and whether to only show ones with a clear action attached.
 
 Changes save automatically in the background so there's no separate save button to remember.
 
