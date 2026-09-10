@@ -24,6 +24,18 @@ export const styles = StyleSheet.create({
     color: colors.ink,
     fontVariant: ["tabular-nums"],
   },
+  // Shown in place of the timer once the session ends — see the completion
+  // hold state in ActiveActivitySession.tsx.
+  checkmark: {
+    fontSize: 40,
+    fontWeight: "700",
+    color: colors.energy,
+  },
+  completeLabel: {
+    ...type.subtitle,
+    color: colors.ink,
+    marginBottom: spacing.xl,
+  },
   steps: {
     marginBottom: spacing.xl,
     alignSelf: "stretch",

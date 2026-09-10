@@ -1,5 +1,5 @@
-import React from "react";
-import { Modal, Text, View } from "react-native";
+import React, { useRef } from "react";
+import { Animated, Modal, Text, View } from "react-native";
 import { useUserStateStore } from "../../store/useUserStateStore";
 import { useBreakPromptStore } from "../../store/useBreakPromptStore";
 import { THRESHOLDS } from "../../types/UserState.types";
@@ -19,6 +19,23 @@ export function BreakPromptModal() {
 
   const visible = isCritical && canShow();
 
+  // `animationType="fade"` on the Modal fades the whole overlay — backdrop
+  // and card — uniformly and at once, which reads as an abrupt flash rather
+  // than an entrance. Animating the card itself (scale up slightly while it
+  // fades in, on native `onShow`) is what actually makes it feel like it's
+  // arriving instead of just appearing.
+  const cardAnim = useRef(new Animated.Value(0)).current;
+
+  function handleShow() {
+    cardAnim.setValue(0);
+    Animated.spring(cardAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      friction: 8,
+      tension: 60,
+    }).start();
+  }
+
   function handleStartActivity() {
     dismiss();
     openModal();
@@ -31,9 +48,25 @@ export function BreakPromptModal() {
   const isEnergyDriven = state.energyLevel < THRESHOLDS.criticalEnergy;
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={handleDismiss}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onShow={handleShow}
+      onRequestClose={handleDismiss}
+    >
       <View style={styles.backdrop}>
-        <View style={styles.card}>
+        <Animated.View
+          style={[
+            styles.card,
+            {
+              opacity: cardAnim,
+              transform: [
+                { scale: cardAnim.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] }) },
+              ],
+            },
+          ]}
+        >
           <View style={styles.iconWrap}>
             <Text style={styles.icon}>{isEnergyDriven ? "◔" : "◎"}</Text>
           </View>
@@ -49,7 +82,7 @@ export function BreakPromptModal() {
             <Button label="Start a break" variant="danger" onPress={handleStartActivity} />
             <Button label="Not now" variant="ghost" onPress={handleDismiss} />
           </View>
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, Text, View } from "react-native";
 import { BreakActivity } from "../../types/breaks/BreakActivity.types";
 import { Button } from "../ui/Button";
 import { ProgressRing } from "../ui/ProgressRing";
@@ -18,28 +18,49 @@ const DIAL_SIZE = 148;
 const DIAL_STROKE = 8;
 
 // Breathing/mindfulness/rest read as "restoring" (recoveryRing: ember→gold);
-// movement/social read as "activating" (focusRing: violet→signal). Keeps the
-// same two gradients used everywhere else in the app, just picked by what
-// the activity is doing for the user rather than a per-activity one-off.
+// movement/social read as "activating" (focusRing: violet→signal).
 const RESTORING_CATEGORIES = new Set(["breathing", "mindfulness", "rest"]);
+
+// How long the "Nice work" confirmation holds on screen before handing
+// control back to the parent. This is what the sheet's slide-down animation
+// plays over, instead of the list view flashing back the instant the
+// session ends — see BreakSheet.completeActivity for the other half of this.
+const COMPLETION_HOLD_MS = 700;
 
 export function ActiveActivitySession({ activity, onComplete, onCancel }: ActiveActivitySessionProps) {
   const totalSeconds = activity.defaultDurationMinutes * 60;
   const [secondsLeft, setSecondsLeft] = useState(totalSeconds);
+  const [isComplete, setIsComplete] = useState(false);
+  const completeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    if (isComplete) return;
     if (secondsLeft <= 0) {
-      const actualMinutes = totalSeconds / 60;
-      onComplete(actualMinutes);
+      triggerCompletion(totalSeconds / 60);
       return;
     }
     const timer = setTimeout(() => setSecondsLeft((s) => s - 1), 1000);
     return () => clearTimeout(timer);
-  }, [secondsLeft]);
+  }, [secondsLeft, isComplete]);
+
+  function triggerCompletion(actualMinutes: number) {
+    setIsComplete(true);
+    Animated.spring(completeAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      friction: 6,
+      tension: 60,
+    }).start();
+    // The parent doesn't hear about completion until the hold finishes, so
+    // whatever it does next (closing the sheet) happens while this
+    // component is already showing the checkmark, not the countdown.
+    setTimeout(() => onComplete(actualMinutes), COMPLETION_HOLD_MS);
+  }
 
   function finishEarly() {
+    if (isComplete) return;
     const elapsedMinutes = Math.max(1, Math.round((totalSeconds - secondsLeft) / 60));
-    onComplete(elapsedMinutes);
+    triggerCompletion(elapsedMinutes);
   }
 
   const minutes = Math.floor(secondsLeft / 60).toString().padStart(2, "0");
@@ -55,32 +76,51 @@ export function ActiveActivitySession({ activity, onComplete, onCancel }: Active
         <ProgressRing
           size={DIAL_SIZE}
           strokeWidth={DIAL_STROKE}
-          progress={progress}
+          progress={isComplete ? 1 : progress}
           trackColor={colors.surfaceSunken}
           gradient={gradient}
           gradientId="activityDialGradient"
         >
-          <Text style={styles.timer}>
-            {minutes}:{seconds}
-          </Text>
+          {isComplete ? (
+            <Animated.View
+              style={{
+                opacity: completeAnim,
+                transform: [
+                  { scale: completeAnim.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) },
+                ],
+              }}
+            >
+              <Text style={styles.checkmark}>✓</Text>
+            </Animated.View>
+          ) : (
+            <Text style={styles.timer}>
+              {minutes}:{seconds}
+            </Text>
+          )}
         </ProgressRing>
       </View>
 
-      {activity.steps && (
-        <View style={styles.steps}>
-          {activity.steps.map((step, i) => (
-            <View key={i} style={styles.stepRow}>
-              <View style={styles.stepDot} />
-              <Text style={styles.step}>{step}</Text>
+      {isComplete ? (
+        <Animated.Text style={[styles.completeLabel, { opacity: completeAnim }]}>Nice work</Animated.Text>
+      ) : (
+        <>
+          {activity.steps && (
+            <View style={styles.steps}>
+              {activity.steps.map((step, i) => (
+                <View key={i} style={styles.stepRow}>
+                  <View style={styles.stepDot} />
+                  <Text style={styles.step}>{step}</Text>
+                </View>
+              ))}
             </View>
-          ))}
-        </View>
-      )}
+          )}
 
-      <View style={styles.actions}>
-        <Button label="I'm done" onPress={finishEarly} />
-        <Button label="Cancel" variant="ghost" onPress={onCancel} />
-      </View>
+          <View style={styles.actions}>
+            <Button label="I'm done" onPress={finishEarly} />
+            <Button label="Cancel" variant="ghost" onPress={onCancel} />
+          </View>
+        </>
+      )}
     </View>
   );
 }
