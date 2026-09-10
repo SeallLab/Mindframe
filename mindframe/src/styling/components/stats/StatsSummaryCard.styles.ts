@@ -19,10 +19,11 @@ export const styles = StyleSheet.create({
     borderRadius: 3,
     marginBottom: 6,
   },
+  // No textTransform: 'uppercase' — see TaskDetailModal.styles.ts
+  // sectionLabel for the same change and rationale.
   label: {
     ...type.micro,
     color: colors.inkMuted,
-    textTransform: "uppercase",
     marginBottom: 6,
   },
   valueRow: {

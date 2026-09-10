@@ -83,10 +83,12 @@ export const styles = StyleSheet.create({
   section: {
     marginBottom: spacing.xl,
   },
+  // No textTransform: 'uppercase' — sentence case reads as a genuine label
+  // rather than the generic tracked-out ALL-CAPS eyebrow (design plan).
+  // caption's own letterSpacing/weight still keep it distinct from body text.
   sectionLabel: {
     ...type.caption,
     color: colors.inkFaint,
-    textTransform: 'uppercase',
     marginBottom: spacing.md,
   },
   subtaskRow: {

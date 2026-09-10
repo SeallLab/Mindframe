@@ -26,7 +26,9 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "experiments": { "baseUrl": "/Mindframe" },
+    "experiments": {
+      "baseUrl": "/Mindframe"
+    },
     "plugins": [
       "expo-sqlite"
     ]

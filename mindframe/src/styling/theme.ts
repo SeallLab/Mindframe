@@ -1,60 +1,92 @@
-// ─────────────────────────────────────────────────────────────────────────────
 // src/styling/theme.ts
 //
-// Single source of truth for the app's visual language.
-//
-// Concept: an "instrument panel for your mind" — the app treats the user's
-// cognitive state (stress / energy / focus / momentum / confidence) as
-// real, readable data, so the palette is built around five distinct
-// "readings" rather than one generic brand color, on a calm, paper-toned
-// backdrop that stays out of the way. Every accent below is used
-// consistently for the *same* meaning everywhere in the app: brand/focus
-// is always the same violet, recovery is always the same teal, and so on.
-//
-// Do not inline hex values or magic numbers in components — pull from here
-// so the whole app moves together if the palette ever changes.
-// ─────────────────────────────────────────────────────────────────────────────
+// Single source of truth for color, radius, shadow, spacing, and type
+// tokens. Every *.styles.ts file reads from here — no raw hex values, radii,
+// or shadow configs in component-level style files.
+
+// ── Colors ───────────────────────────────────────────────────────────────
 
 export const colors = {
-  bg: "#F3F6F0",
-  surface: "#FFFFFF",
-  surfaceAlt: "#ECEFE6",
-  surfaceSunken: "#E7EAE0",
-  border: "#DEE4D7",
-  borderStrong: "#C7CEBC",
+  // Surfaces
+  bg: '#0C0D1F',
+  surface: '#15172E',
+  surfaceAlt: '#1D1F3B',
+  surfaceSunken: '#0F1026',
+  overlay: 'rgba(4, 5, 15, 0.75)',
+  border: '#2A2C4D',
+  borderStrong: '#3A3D66',
 
-  ink: "#1E241F",
-  inkMuted: "#5C6459",
-  inkFaint: "#8F968A",
-  inkOnBrand: "#FFFFFF",
+  // Text
+  ink: '#F3F3FA',
+  inkOnBrand: '#0C0D1F',
+  inkMuted: '#9A9BC0',
+  inkFaint: '#63648C',
 
-  // Brand / focus — the app's identity color, used for primary actions
-  brand: "#463C82",
-  brandHover: "#372F68",
-  brandSoft: "#EBE8FA",
+  // Metric accents — each owns exactly one meaning app-wide (stress,
+  // energy, focus, momentum, confidence). Don't reuse these for unrelated
+  // UI chrome — see `positive` below for why that matters.
+  brand: '#8B6BF2', // focus
+  brandSoft: 'rgba(139, 107, 242, 0.15)',
 
-  // Energy / recovery — teal, positive & restorative
-  energy: "#0E7A67",
-  energySoft: "#E1F4EE",
+  energy: '#FF7A45',
+  energySoft: 'rgba(255, 122, 69, 0.15)',
 
-  // Stress / warning / danger — rust, never the AI-cliché terracotta
-  stress: "#B14A34",
-  stressSoft: "#FBEAE3",
+  stress: '#F5457A',
+  stressSoft: 'rgba(245, 69, 122, 0.15)',
 
-  // Momentum — ochre amber
-  momentum: "#9C6B18",
-  momentumSoft: "#FAF0DA",
+  momentum: '#4FA0FF',
+  momentumSoft: 'rgba(79, 160, 255, 0.15)',
 
-  // Confidence — muted plum
-  confidence: "#7C4568",
-  confidenceSoft: "#F5EAF0",
+  confidence: '#FFC24B',
+  confidenceSoft: 'rgba(255, 194, 75, 0.15)',
 
-  // Info / celebrate — steel blue
-  info: "#1F6693",
-  infoSoft: "#E5F1F8",
-
-  overlay: "rgba(23, 26, 20, 0.5)",
+  // A save-confirmation checkmark isn't a cognitive metric — it doesn't
+  // belong to stress/energy/focus/momentum/confidence, so it gets its own
+  // token instead of borrowing one of theirs (e.g. `energy`, which would
+  // read as "your energy went up," not "this saved").
+  positive: '#5FD9A0',
 } as const;
+
+// ── Semantic aliases ─────────────────────────────────────────────────────
+//
+// Recommendation categories (HomeScreen's CATEGORY_STYLE) are a different
+// axis from the five state metrics — "this card is about recovery" isn't
+// the same claim as "energyLevel is low" — but they map onto the same
+// underlying colors, so they're aliased here rather than given a second,
+// independent palette.
+
+export const semantic = {
+  recovery: colors.energy,
+  recoverySoft: colors.energySoft,
+
+  focus: colors.brand,
+  focusSoft: colors.brandSoft,
+
+  motivation: colors.confidence,
+  motivationSoft: colors.confidenceSoft,
+
+  warning: colors.stress,
+  warningSoft: colors.stressSoft,
+
+  celebrate: colors.confidence,
+  celebrateSoft: colors.confidenceSoft,
+} as const;
+
+// ── Radius ───────────────────────────────────────────────────────────────
+//
+// Deliberately not uniform — radius signals hierarchy. Hero/modal surfaces
+// get the largest radius, standard cards/rows a mid radius, small controls
+// (inputs, small badges) the smallest, chips/pills are fully round.
+
+export const radius = {
+  sm: 10,
+  md: 16,
+  lg: 20,
+  xl: 28,
+  pill: 999,
+} as const;
+
+// ── Spacing ──────────────────────────────────────────────────────────────
 
 export const spacing = {
   xs: 4,
@@ -64,62 +96,82 @@ export const spacing = {
   lg: 20,
   xl: 24,
   xxl: 32,
-  xxxl: 40,
 } as const;
 
-export const radius = {
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
-  pill: 999,
-} as const;
-
-// A restrained type scale. RN can't easily load custom display faces
-// without extra native config, so distinctiveness comes from weight,
-// tracking, and size relationships rather than a swapped-in font family.
-export const type = {
-  display: { fontSize: 30, fontWeight: "700" as const, letterSpacing: -0.6 },
-  title: { fontSize: 22, fontWeight: "700" as const, letterSpacing: -0.3 },
-  subtitle: { fontSize: 17, fontWeight: "600" as const, letterSpacing: -0.1 },
-  body: { fontSize: 15, fontWeight: "400" as const },
-  bodyStrong: { fontSize: 15, fontWeight: "600" as const },
-  caption: { fontSize: 12, fontWeight: "600" as const, letterSpacing: 0.6 },
-  micro: { fontSize: 11, fontWeight: "500" as const, letterSpacing: 0.3 },
-};
+// ── Shadow ───────────────────────────────────────────────────────────────
+//
+// Only floating/emphasis surfaces (modals, the break mini-bar, toasts) get
+// a shadow at all — plain cards and list rows use a `border` hairline
+// instead (see radius comment above; same "hierarchy, not uniformity"
+// rule). `glow` is for the rarer case of a colored emphasis glow (e.g. one
+// state-driven dot or active ring) — pass the metric/accent color in.
 
 export const shadow = {
-  card: {
-    shadowColor: colors.ink,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
   raised: {
-    shadowColor: colors.ink,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.14,
-    shadowRadius: 18,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
     elevation: 6,
   },
+  glow: (color: string) => ({
+    shadowColor: color,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.55,
+    shadowRadius: 10,
+    elevation: 8,
+  }),
 } as const;
 
-// Status-bearing accents, keyed by meaning so components don't have to
-// re-derive "which color means recovery" themselves.
-export const semantic = {
-  recovery: colors.energy,
-  recoverySoft: colors.energySoft,
-  warning: colors.stress,
-  warningSoft: colors.stressSoft,
-  focus: colors.brand,
-  focusSoft: colors.brandSoft,
-  motivation: colors.momentum,
-  motivationSoft: colors.momentumSoft,
-  celebrate: colors.info,
-  celebrateSoft: colors.infoSoft,
-} as const;
+// ── Type ─────────────────────────────────────────────────────────────────
+//
+// Two families, distinct roles: Space Grotesk for headlines/titles (its
+// squared-off letterforms are what should make headers feel deliberate
+// rather than default-system-font), Manrope for everything else. Register
+// both via expo-font / useFonts before use — these tokens assume the family
+// names below are the ones you load under.
+//
+// No role here uses textTransform: 'uppercase' — that's applied (or not)
+// per-component, and intentionally isn't the default (see design plan:
+// avoid the all-caps-eyebrow-label tell).
 
-export const theme = { colors, spacing, radius, type, shadow, semantic };
-export type Theme = typeof theme;
-export default theme;
+export const type = {
+  display: {
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontWeight: '700' as const,
+    fontSize: 28,
+    letterSpacing: -0.5,
+  },
+  title: {
+    fontFamily: 'SpaceGrotesk-SemiBold',
+    fontWeight: '700' as const,
+    fontSize: 22,
+    letterSpacing: -0.3,
+  },
+  subtitle: {
+    fontFamily: 'SpaceGrotesk-Medium',
+    fontWeight: '600' as const,
+    fontSize: 18,
+  },
+  bodyStrong: {
+    fontFamily: 'Manrope-SemiBold',
+    fontWeight: '600' as const,
+    fontSize: 15,
+  },
+  body: {
+    fontFamily: 'Manrope-Regular',
+    fontWeight: '400' as const,
+    fontSize: 15,
+  },
+  caption: {
+    fontFamily: 'Manrope-SemiBold',
+    fontWeight: '600' as const,
+    fontSize: 12,
+    letterSpacing: 0.2,
+  },
+  micro: {
+    fontFamily: 'Manrope-Medium',
+    fontWeight: '500' as const,
+    fontSize: 11,
+  },
+} as const;

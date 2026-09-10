@@ -9,43 +9,10 @@ import {
 } from 'react-native';
 import { ScheduledTask } from '../../types/Task.types';
 import { TaskStatus } from '../../types/calendar/Calendar.types';
+import { formatDateTime, formatTimeRange, formatDuration } from '../../utils/calendarUtils';
 import { Badge } from '../ui/Badge';
 import { colors } from '../../styling/theme';
 import { styles } from '../../styling/components/calendar/TaskDetailModal.styles';
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatDateTime(dateTime: string): string {
-  const d = new Date(dateTime);
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const month = months[d.getMonth()];
-  const day   = d.getDate();
-  const h     = d.getHours();
-  const m     = String(d.getMinutes()).padStart(2, '0');
-  const suffix = h >= 12 ? 'PM' : 'AM';
-  const hour   = h % 12 === 0 ? 12 : h % 12;
-  return `${month} ${day} · ${hour}:${m} ${suffix}`;
-}
-
-function formatTimeRange(start: string, end: string): string {
-  const fmt = (dt: string) => {
-    const d = new Date(dt);
-    const h = d.getHours();
-    const m = String(d.getMinutes()).padStart(2, '0');
-    const suffix = h >= 12 ? 'PM' : 'AM';
-    const hour   = h % 12 === 0 ? 12 : h % 12;
-    return `${hour}:${m} ${suffix}`;
-  };
-  return `${fmt(start)} – ${fmt(end)}`;
-}
-
-function formatDuration(start: string, end: string): string {
-  const mins = (new Date(end).getTime() - new Date(start).getTime()) / 60000;
-  if (mins < 60) return `${Math.round(mins)}m`;
-  const h = Math.floor(mins / 60);
-  const m = Math.round(mins % 60);
-  return m > 0 ? `${h}h ${m}m` : `${h}h`;
-}
 
 // ─── Status config ────────────────────────────────────────────────────────────
 

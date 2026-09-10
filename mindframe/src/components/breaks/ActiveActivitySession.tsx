@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Text, View } from "react-native";
-import Svg, { Circle } from "react-native-svg";
 import { BreakActivity } from "../../types/breaks/BreakActivity.types";
 import { Button } from "../ui/Button";
+import { ProgressRing } from "../ui/ProgressRing";
 import { colors } from "../../styling/theme";
+import { gradients } from "../../styling/gradients";
 import { styles } from "../../styling/components/breaks/ActiveActivitySession.styles";
 
 interface ActiveActivitySessionProps {
@@ -15,8 +16,12 @@ interface ActiveActivitySessionProps {
 
 const DIAL_SIZE = 148;
 const DIAL_STROKE = 8;
-const DIAL_RADIUS = (DIAL_SIZE - DIAL_STROKE) / 2;
-const DIAL_CIRCUMFERENCE = 2 * Math.PI * DIAL_RADIUS;
+
+// Breathing/mindfulness/rest read as "restoring" (recoveryRing: ember→gold);
+// movement/social read as "activating" (focusRing: violet→signal). Keeps the
+// same two gradients used everywhere else in the app, just picked by what
+// the activity is doing for the user rather than a per-activity one-off.
+const RESTORING_CATEGORIES = new Set(["breathing", "mindfulness", "rest"]);
 
 export function ActiveActivitySession({ activity, onComplete, onCancel }: ActiveActivitySessionProps) {
   const totalSeconds = activity.defaultDurationMinutes * 60;
@@ -40,39 +45,25 @@ export function ActiveActivitySession({ activity, onComplete, onCancel }: Active
   const minutes = Math.floor(secondsLeft / 60).toString().padStart(2, "0");
   const seconds = (secondsLeft % 60).toString().padStart(2, "0");
   const progress = totalSeconds === 0 ? 0 : 1 - secondsLeft / totalSeconds;
-  const dashOffset = DIAL_CIRCUMFERENCE * (1 - progress);
+  const gradient = RESTORING_CATEGORIES.has(activity.category) ? gradients.recoveryRing : gradients.focusRing;
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{activity.title}</Text>
 
       <View style={styles.dialWrap}>
-        <Svg width={DIAL_SIZE} height={DIAL_SIZE}>
-          <Circle
-            cx={DIAL_SIZE / 2}
-            cy={DIAL_SIZE / 2}
-            r={DIAL_RADIUS}
-            stroke={colors.surfaceSunken}
-            strokeWidth={DIAL_STROKE}
-            fill="none"
-          />
-          <Circle
-            cx={DIAL_SIZE / 2}
-            cy={DIAL_SIZE / 2}
-            r={DIAL_RADIUS}
-            stroke={colors.energy}
-            strokeWidth={DIAL_STROKE}
-            strokeLinecap="round"
-            strokeDasharray={DIAL_CIRCUMFERENCE}
-            strokeDashoffset={dashOffset}
-            fill="none"
-            rotation={-90}
-            origin={`${DIAL_SIZE / 2}, ${DIAL_SIZE / 2}`}
-          />
-        </Svg>
-        <View style={styles.dialCenter}>
-          <Text style={styles.timer}>{minutes}:{seconds}</Text>
-        </View>
+        <ProgressRing
+          size={DIAL_SIZE}
+          strokeWidth={DIAL_STROKE}
+          progress={progress}
+          trackColor={colors.surfaceSunken}
+          gradient={gradient}
+          gradientId="activityDialGradient"
+        >
+          <Text style={styles.timer}>
+            {minutes}:{seconds}
+          </Text>
+        </ProgressRing>
       </View>
 
       {activity.steps && (

@@ -18,10 +18,11 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 3,
   },
+  // No textTransform: 'uppercase' — the letterSpacing alone is enough to
+  // read as a label without shouting (see design plan on all-caps labels).
   priorityLabel: {
     fontSize: 12,
     fontWeight: "600",
-    textTransform: "uppercase",
     letterSpacing: 0.3,
   },
   totalLabel: {

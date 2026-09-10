@@ -17,10 +17,14 @@ export const styles = StyleSheet.create({
     maxWidth: 360,
     ...shadow.raised,
   },
+  // A true circle (radius = half of width/height) rather than a rounded
+  // square — icon badges throughout the break flow read as "a small planet"
+  // rather than "a small card," matching the dial/gauge shape language used
+  // everywhere else state is shown.
   iconWrap: {
     width: 48,
     height: 48,
-    borderRadius: radius.md,
+    borderRadius: 24,
     backgroundColor: colors.stressSoft,
     alignItems: "center",
     justifyContent: "center",

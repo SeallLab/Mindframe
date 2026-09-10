@@ -22,5 +22,7 @@ export const styles = StyleSheet.create({
     color: colors.surface,
   },
   textSaving: { color: colors.inkFaint },
-  textSaved: { color: "#7CE0BF" },
+  // Was a hardcoded hex ("#7CE0BF") — moved to the theme's `positive` token
+  // so this doesn't drift from the palette during future theme changes.
+  textSaved: { color: colors.positive },
 });

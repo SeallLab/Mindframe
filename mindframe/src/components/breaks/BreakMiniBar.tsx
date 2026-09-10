@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { UserState, THRESHOLDS } from "../../types/UserState.types";
-import { colors } from "../../styling/theme";
+import { colors, shadow } from "../../styling/theme";
 import { styles } from "../../styling/components/breaks/BreakMiniBar.styles";
 
 export type BreakEmphasis = "urgent" | "suggested" | "subtle";
@@ -44,7 +44,11 @@ export function BreakMiniBar({ emphasis, onPress }: BreakMiniBarProps) {
       accessibilityRole="button"
       accessibilityLabel="Open break activities"
     >
-      <View style={[styles.dot, { backgroundColor: accent }]} />
+      {/* Glow intensity is fixed — only the color changes with emphasis —
+          so "urgent" reads as more alarming without the bar itself getting
+          louder every tier (see design plan: one glow per screen, applied
+          here at component scale: one glowing element per bar). */}
+      <View style={[styles.dot, { backgroundColor: accent }, shadow.glow(accent)]} />
 
       <View style={styles.textBlock}>
         <Text style={styles.label}>{copy.label}</Text>

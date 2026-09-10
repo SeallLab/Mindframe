@@ -37,10 +37,11 @@ export const styles = StyleSheet.create({
   field: {
     marginBottom: spacing.xl,
   },
+  // No textTransform: 'uppercase' — see TaskDetailModal.styles.ts sectionLabel
+  // for the same change and rationale.
   fieldLabel: {
     ...type.caption,
     color: colors.inkFaint,
-    textTransform: 'uppercase',
     marginBottom: spacing.sm,
   },
   fieldError: {

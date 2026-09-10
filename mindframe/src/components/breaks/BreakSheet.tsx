@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Dimensions, PanResponder, ScrollView, Text, View } from "react-native";
+import React, { useMemo, useRef, useState } from "react";
+import { Animated, PanResponder, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { breakActivities, BreakActivity } from "../../types/breaks/BreakActivity.types";
 import { BreakActivityCategory } from "../../types/AppEvent.types";
@@ -8,15 +8,13 @@ import { ActivityCard } from "../ui/ActivityCard";
 import { IconButton } from "../ui/IconButton";
 import { EmptyState } from "../ui/EmptyState";
 import { ActiveActivitySession } from "./ActiveActivitySession";
-import { CATEGORY_COLORS, CATEGORY_GLYPHS, CATEGORY_LABELS, CATEGORY_SOFT_COLORS } from "../../styling/breaksTheme";
+import { CATEGORY_COLORS, CATEGORY_GLYPHS, CATEGORY_LABELS } from "../../styling/breaksTheme";
 import { colors } from "../../styling/theme";
 import { styles } from "../../styling/components/breaks/BreakSheet.styles";
 
 type CategoryFilter = "all" | BreakActivityCategory;
 
 const ALL_CATEGORIES: BreakActivityCategory[] = ["breathing", "movement", "mindfulness", "social", "rest"];
-
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 interface BreakSheetProps {
   onClose: () => void;
@@ -33,16 +31,19 @@ function CategoryChip({
 }) {
   const isAll = filter === "all";
   const accent = isAll ? colors.brand : CATEGORY_COLORS[filter];
-  const soft = isAll ? colors.brandSoft : CATEGORY_SOFT_COLORS[filter];
   const glyph = isAll ? "✳" : CATEGORY_GLYPHS[filter];
   const label = isAll ? "All" : CATEGORY_LABELS[filter];
 
+  // Active = solid accent fill. Inactive = transparent with just a colored
+  // hairline, so the category stays identifiable at a glance without every
+  // chip in the row reading as an equally-weighted filled block (see design
+  // plan: "radius/fill by hierarchy, not uniformity").
   return (
     <View
       onTouchEnd={onPress}
       style={[
         styles.chip,
-        { backgroundColor: isActive ? accent : soft, borderColor: isActive ? accent : "transparent" },
+        { backgroundColor: isActive ? accent : "transparent", borderColor: accent },
       ]}
     >
       <Text style={[styles.chipGlyph, { color: isActive ? colors.inkOnBrand : accent }]}>{glyph}</Text>
@@ -57,16 +58,8 @@ export function BreakSheet({ onClose }: BreakSheetProps) {
   const [active, setActive] = useState<BreakActivity | null>(null);
   const [filter, setFilter] = useState<CategoryFilter>("all");
 
-  const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
   const DISMISS_THRESHOLD = 120;
-
-  useEffect(() => {
-    Animated.spring(translateY, {
-      toValue: 0,
-      useNativeDriver: true,
-      bounciness: 4,
-    }).start();
-  }, []);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -78,7 +71,7 @@ export function BreakSheet({ onClose }: BreakSheetProps) {
       onPanResponderRelease: (_, gesture) => {
         if (gesture.dy > DISMISS_THRESHOLD) {
           Animated.timing(translateY, {
-            toValue: SCREEN_HEIGHT,
+            toValue: 800,
             duration: 200,
             useNativeDriver: true,
           }).start(() => {

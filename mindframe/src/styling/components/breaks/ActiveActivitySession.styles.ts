@@ -16,14 +16,11 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: spacing.xl,
   },
-  dialCenter: {
-    position: "absolute",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  // Timer readout uses the display type role (Space Grotesk) so it reads as
+  // an instrument reading rather than generic body text — see design plan.
   timer: {
+    ...type.display,
     fontSize: 34,
-    fontWeight: "300",
     color: colors.ink,
     fontVariant: ["tabular-nums"],
   },
