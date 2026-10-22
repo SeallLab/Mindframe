@@ -6,10 +6,12 @@
 // primitive, so the geometry and dash-offset technique live in one place
 // instead of being duplicated across the two components.
 
-import React from "react";
-import { View } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { Animated, View } from "react-native";
 import Svg, { Path, Defs, LinearGradient, Stop } from "react-native-svg";
 import { describeArc } from "./arcMath";
+
+const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 interface ProgressRingProps {
   /** Width of the SVG canvas, and the basis for the default radius. */
@@ -39,6 +41,12 @@ interface ProgressRingProps {
   centerY?: number;
   /** Arc radius override. Defaults to (size - strokeWidth) / 2. */
   radius?: number;
+  /** When true, changes to `progress` ease into place instead of snapping —
+   *  use for anything driven by a value that can jump between renders (a
+   *  state gauge reacting to a dispatch). Leave false for anything already
+   *  updating in small, precise steps on its own (a per-second countdown),
+   *  where easing would just make it lag behind the real value. */
+  animated?: boolean;
   children?: React.ReactNode;
 }
 
@@ -55,6 +63,7 @@ export function ProgressRing({
   height,
   centerY,
   radius,
+  animated = false,
   children,
 }: ProgressRingProps) {
   const clamped = Math.max(0, Math.min(1, progress));
@@ -74,11 +83,28 @@ export function ProgressRing({
       ].join(" ")
     : describeArc(cx, cy, r, startAngle, startAngle + sweepAngle);
 
-  // Progress is revealed via stroke-dasharray/-dashoffset on the same path
-  // used for the track, rather than drawing a second, shorter arc — one
-  // path, two renders (full-opacity track, partial-reveal progress).
   const pathLength = (sweepAngle * Math.PI * r) / 180;
-  const dashOffset = pathLength * (1 - clamped);
+
+  // Progress is always driven through an Animated.Value — when `animated`
+  // is false it's just set instantly (no visible difference from a plain
+  // value), which keeps this to one code path instead of two.
+  const progressAnim = useRef(new Animated.Value(clamped)).current;
+  useEffect(() => {
+    if (!animated) {
+      progressAnim.setValue(clamped);
+      return;
+    }
+    Animated.timing(progressAnim, {
+      toValue: clamped,
+      duration: 500,
+      useNativeDriver: false, // SVG stroke props aren't supported by the native driver
+    }).start();
+  }, [clamped, animated]);
+
+  const dashOffset = progressAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [pathLength, 0],
+  });
 
   return (
     <View style={{ width: size, height: canvasHeight }}>
@@ -92,7 +118,7 @@ export function ProgressRing({
           </Defs>
         )}
         <Path d={path} stroke={trackColor} strokeWidth={strokeWidth} fill="none" strokeLinecap="round" />
-        <Path
+        <AnimatedPath
           d={path}
           stroke={gradient ? `url(#${gradientId})` : color}
           strokeWidth={strokeWidth}

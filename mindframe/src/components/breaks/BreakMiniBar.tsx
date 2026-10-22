@@ -1,5 +1,5 @@
-import React from "react";
-import { Pressable, Text, View } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { Animated, Pressable, Text, View } from "react-native";
 import { UserState, THRESHOLDS } from "../../types/UserState.types";
 import { colors, shadow } from "../../styling/theme";
 import { styles } from "../../styling/components/breaks/BreakMiniBar.styles";
@@ -28,6 +28,11 @@ const EMPHASIS_ACCENT: Record<BreakEmphasis, string> = {
   subtle: colors.brand,
 };
 
+// Fixed order so a tier change can be expressed as a single animated index
+// (0/1/2) and interpolated through — see emphasisAnim below.
+const EMPHASIS_ORDER: BreakEmphasis[] = ["urgent", "suggested", "subtle"];
+const ACCENT_OUTPUT_RANGE = EMPHASIS_ORDER.map((tier) => EMPHASIS_ACCENT[tier]);
+
 interface BreakMiniBarProps {
   emphasis: BreakEmphasis;
   onPress: () => void;
@@ -35,7 +40,35 @@ interface BreakMiniBarProps {
 
 export function BreakMiniBar({ emphasis, onPress }: BreakMiniBarProps) {
   const copy = EMPHASIS_COPY[emphasis];
-  const accent = EMPHASIS_ACCENT[emphasis];
+  const targetIndex = EMPHASIS_ORDER.indexOf(emphasis);
+
+  // Dot + glow color ease between tiers instead of snapping — state doesn't
+  // cross a threshold mid-animation in the real world, so a brief color
+  // morph reads as "this is changing," not as lag.
+  const emphasisAnim = useRef(new Animated.Value(targetIndex)).current;
+  // Label/sub-label cross-fade on change, since the color easing doesn't
+  // cover text content swapping.
+  const textOpacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.timing(emphasisAnim, {
+      toValue: targetIndex,
+      duration: 260,
+      useNativeDriver: false, // backgroundColor/shadowColor aren't native-driver props
+    }).start();
+
+    textOpacity.setValue(0);
+    Animated.timing(textOpacity, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  }, [targetIndex]);
+
+  const accentColor = emphasisAnim.interpolate({
+    inputRange: [0, 1, 2],
+    outputRange: ACCENT_OUTPUT_RANGE,
+  });
 
   return (
     <Pressable
@@ -44,16 +77,21 @@ export function BreakMiniBar({ emphasis, onPress }: BreakMiniBarProps) {
       accessibilityRole="button"
       accessibilityLabel="Open break activities"
     >
-      {/* Glow intensity is fixed — only the color changes with emphasis —
-          so "urgent" reads as more alarming without the bar itself getting
-          louder every tier (see design plan: one glow per screen, applied
-          here at component scale: one glowing element per bar). */}
-      <View style={[styles.dot, { backgroundColor: accent }, shadow.glow(accent)]} />
+      <Animated.View
+        style={[
+          styles.dot,
+          { backgroundColor: accentColor },
+          // shadow.glow's shadowColor accepts the same Animated color value,
+          // so the glow morphs in step with the dot rather than jumping to
+          // match it a beat later.
+          { ...shadow.glow(EMPHASIS_ACCENT[emphasis]), shadowColor: accentColor },
+        ]}
+      />
 
-      <View style={styles.textBlock}>
+      <Animated.View style={[styles.textBlock, { opacity: textOpacity }]}>
         <Text style={styles.label}>{copy.label}</Text>
         <Text style={styles.sub}>{copy.sub}</Text>
-      </View>
+      </Animated.View>
 
       <View style={styles.chevronWrap}>
         <View style={styles.chevronUp} />

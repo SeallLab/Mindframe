@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, Modal } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { Animated, View, Text, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserStateStore } from "../store/useUserStateStore";
 import { useBreakPromptStore } from "../store/useBreakPromptStore";
@@ -36,7 +36,7 @@ function RecommendationBanner({ rec }: { rec: Recommendation }) {
           )}
         </View>
         <Text style={[banner.headline, { color: s.accent }]}>{rec.headline}</Text>
-        <Text style={banner.detail} numberOfLines={3}>{rec.detail}</Text>
+        <Text style={banner.detail}>{rec.detail}</Text>
       </View>
     </View>
   );
@@ -64,10 +64,40 @@ export function HomeScreen() {
   const emphasis = getBreakEmphasis(state);
   const { weekday, date } = formatWeekdayDate();
 
+  // The recommendation engine re-runs on every dispatch and can swap the
+  // top recommendation out for an entirely different one (different
+  // category, headline, everything) with no transition of its own. Cross-
+  // fading on change means a new recommendation arrives rather than just
+  // replacing the old one mid-glance. Keyed on `id` rather than object
+  // identity, since a fresh (but equal) recommendation object can be
+  // produced by the engine without actually being a different suggestion.
+  const bannerOpacity = useRef(new Animated.Value(topRec ? 1 : 0)).current;
+  const lastRecId = useRef<string | null>(topRec?.id ?? null);
+
+  useEffect(() => {
+    const nextId = topRec?.id ?? null;
+    if (nextId === lastRecId.current) return;
+    lastRecId.current = nextId;
+
+    if (!topRec) return; // banner unmounts via the conditional below
+
+    bannerOpacity.setValue(0);
+    Animated.timing(bannerOpacity, {
+      toValue: 1,
+      duration: 260,
+      useNativeDriver: true,
+    }).start();
+  }, [topRec?.id]);
+
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <ScreenHeader title={weekday} subtitle={date} />
-      {topRec && <RecommendationBanner rec={topRec} />}
+
+      {topRec && (
+        <Animated.View style={{ opacity: bannerOpacity }}>
+          <RecommendationBanner rec={topRec} />
+        </Animated.View>
+      )}
 
       <View style={styles.calendar}>
         <Calendar />
@@ -77,7 +107,7 @@ export function HomeScreen() {
       <BreakMiniBar emphasis={emphasis} onPress={openModal} />
 
       {/* Expanded break sheet — takes over the full screen when opened */}
-      <Modal visible={modalVisible} transparent animationType="none" onRequestClose={closeModal}>
+      <Modal visible={modalVisible} animationType="slide" onRequestClose={closeModal}>
         <BreakSheet onClose={closeModal} />
       </Modal>
     </SafeAreaView>

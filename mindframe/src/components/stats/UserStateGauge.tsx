@@ -49,6 +49,11 @@ export function UserStateGauge({ value, label, color, isInverted = false }: Prop
         color={arcColor}
         sweepAngle={180}
         startAngle={180}
+        // State changes arrive as a jump between dispatches (not a smooth
+        // stream of small updates), so this gauge eases into its new
+        // reading rather than snapping — unlike the break timer dial, which
+        // is already updating in precise, correct-by-definition steps.
+        animated
       />
       <Text style={[styles.value, { color: arcColor }]}>{Math.round(clamped)}</Text>
       <Text style={styles.label}>{label}</Text>
