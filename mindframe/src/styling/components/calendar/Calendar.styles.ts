@@ -32,27 +32,15 @@ export const styles = StyleSheet.create({
   filterWrap: {
     flex: 1,
   },
-  weekNav: {
-    flexDirection: 'row',
+  expandToggle: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
   },
-
-  weekArrow: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-
-  weekArrowText: {
-    fontSize: 22,
-    fontWeight: '600',
-  },
-
-  weekLabel: {
-    fontSize: 16,
-    fontWeight: '600',
+  expandToggleText: {
+    ...type.bodyStrong,
+    fontSize: 13,
+    color: colors.inkMuted,
   },
   addBtn: {
     paddingVertical: 10,
@@ -105,11 +93,9 @@ export const styles = StyleSheet.create({
 
   actionsRow: {
     flexDirection: 'row',
+    gap: 2,
   },
   action: { paddingHorizontal: 6 },
-  complete: { fontSize: 17, color: colors.energy, fontWeight: '700' },
-  delay: { fontSize: 17, color: colors.momentum },
-  skip: { fontSize: 17, color: colors.stress },
 
   statusLabel: {
     ...type.micro,

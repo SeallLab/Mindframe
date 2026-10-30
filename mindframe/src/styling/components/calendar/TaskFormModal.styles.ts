@@ -129,10 +129,6 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.ink,
   },
-  subtaskRemove: {
-    fontSize: 12,
-    color: colors.inkFaint,
-  },
   subtaskInputRow: {
     flexDirection: 'row',
     gap: spacing.sm,

@@ -22,6 +22,11 @@ export interface UserPreferences {
   recommendationMode: RecommendationMode;
   maxRecommendations: number;       // 1–3; drives how many cards are shown at once
   enableActionableOnly: boolean;    // when true, only recs with an actionEvent are shown
+
+  // App flow state. Not a "preference" in the user-facing sense, but it
+  // rides on the same persistence path (type → migration → repo → store)
+  // as everything else here rather than getting a one-off storage layer.
+  hasOnboarded: boolean;            // false until the first-run flow is completed or skipped
 }
 
 export const defaultPreferences: UserPreferences = {
@@ -33,4 +38,5 @@ export const defaultPreferences: UserPreferences = {
   recommendationMode: "general",
   maxRecommendations: 1,
   enableActionableOnly: false,
+  hasOnboarded: false,
 };

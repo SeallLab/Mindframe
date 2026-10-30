@@ -1,9 +1,11 @@
 import React, { useRef } from "react";
 import { Animated, Modal, Text, View } from "react-native";
+import { BatteryLow, AlertCircle } from "lucide-react-native";
 import { useUserStateStore } from "../../store/useUserStateStore";
 import { useBreakPromptStore } from "../../store/useBreakPromptStore";
 import { THRESHOLDS } from "../../types/UserState.types";
 import { Button } from "../ui/Button";
+import { colors } from "../../styling/theme";
 import { styles } from "../../styling/components/breaks/BreakPromptModal.styles";
 
 export function BreakPromptModal() {
@@ -20,10 +22,9 @@ export function BreakPromptModal() {
   const visible = isCritical && canShow();
 
   // `animationType="fade"` on the Modal fades the whole overlay — backdrop
-  // and card — uniformly and at once, which reads as an abrupt flash rather
-  // than an entrance. Animating the card itself (scale up slightly while it
-  // fades in, on native `onShow`) is what actually makes it feel like it's
-  // arriving instead of just appearing.
+  // and card — uniformly and at once, which reads as an abrupt flash.
+  // Animating the card itself (scale up slightly while it fades in, on
+  // native `onShow`) makes it read as arriving instead of just appearing.
   const cardAnim = useRef(new Animated.Value(0)).current;
 
   function handleShow() {
@@ -68,7 +69,11 @@ export function BreakPromptModal() {
           ]}
         >
           <View style={styles.iconWrap}>
-            <Text style={styles.icon}>{isEnergyDriven ? "◔" : "◎"}</Text>
+            {isEnergyDriven ? (
+              <BatteryLow size={22} color={colors.stress} />
+            ) : (
+              <AlertCircle size={22} color={colors.stress} />
+            )}
           </View>
           <Text style={styles.headline}>
             {isEnergyDriven ? "You're running on empty" : "Stress is at a critical level"}

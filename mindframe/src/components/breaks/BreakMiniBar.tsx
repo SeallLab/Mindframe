@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, Pressable, Text, View } from "react-native";
+import { ChevronUp } from "lucide-react-native";
 import { UserState, THRESHOLDS } from "../../types/UserState.types";
 import { colors, shadow } from "../../styling/theme";
 import { styles } from "../../styling/components/breaks/BreakMiniBar.styles";
@@ -42,9 +43,7 @@ export function BreakMiniBar({ emphasis, onPress }: BreakMiniBarProps) {
   const copy = EMPHASIS_COPY[emphasis];
   const targetIndex = EMPHASIS_ORDER.indexOf(emphasis);
 
-  // Dot + glow color ease between tiers instead of snapping — state doesn't
-  // cross a threshold mid-animation in the real world, so a brief color
-  // morph reads as "this is changing," not as lag.
+  // Dot + glow color ease between tiers instead of snapping.
   const emphasisAnim = useRef(new Animated.Value(targetIndex)).current;
   // Label/sub-label cross-fade on change, since the color easing doesn't
   // cover text content swapping.
@@ -81,9 +80,8 @@ export function BreakMiniBar({ emphasis, onPress }: BreakMiniBarProps) {
         style={[
           styles.dot,
           { backgroundColor: accentColor },
-          // shadow.glow's shadowColor accepts the same Animated color value,
-          // so the glow morphs in step with the dot rather than jumping to
-          // match it a beat later.
+          // The glow's shadowColor takes the same animated value, so it
+          // morphs in step with the dot instead of jumping a beat later.
           { ...shadow.glow(EMPHASIS_ACCENT[emphasis]), shadowColor: accentColor },
         ]}
       />
@@ -94,7 +92,7 @@ export function BreakMiniBar({ emphasis, onPress }: BreakMiniBarProps) {
       </Animated.View>
 
       <View style={styles.chevronWrap}>
-        <View style={styles.chevronUp} />
+        <ChevronUp size={18} color={colors.inkFaint} />
       </View>
     </Pressable>
   );

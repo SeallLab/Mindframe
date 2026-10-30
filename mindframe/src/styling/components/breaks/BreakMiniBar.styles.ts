@@ -44,14 +44,4 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  // A small upward chevron built from a rotated square border, avoiding a
-  // dependency on the icon font for this one glyph.
-  chevronUp: {
-    width: 8,
-    height: 8,
-    borderTopWidth: 2,
-    borderRightWidth: 2,
-    borderColor: colors.inkFaint,
-    transform: [{ rotate: "-45deg" }],
-  },
 });

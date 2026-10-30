@@ -10,6 +10,7 @@ import {
   Platform,
   SafeAreaView,
 } from 'react-native';
+import { X } from 'lucide-react-native';
 import { ScheduledTask } from '../../types/Task.types';
 import { TaskPriority, TaskStatus } from '../../types/calendar/Calendar.types';
 import { dateStringToLocalDate, dateToTimeString, formatDateString, timeStringToLocalDate } from '../../utils/calendarUtils';
@@ -308,8 +309,13 @@ export function TaskFormModal({
                 <View key={i} style={styles.subtaskRow}>
                   <Text style={styles.subtaskBullet}>·</Text>
                   <Text style={styles.subtaskText}>{s}</Text>
-                  <TouchableOpacity onPress={() => removeSubtask(i)} hitSlop={HIT_SLOP}>
-                    <Text style={styles.subtaskRemove}>✕</Text>
+                  <TouchableOpacity
+                    onPress={() => removeSubtask(i)}
+                    hitSlop={HIT_SLOP}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Remove subtask ${s}`}
+                  >
+                    <X size={14} color={colors.inkFaint} />
                   </TouchableOpacity>
                 </View>
               ))}

@@ -1,17 +1,12 @@
 // src/styling/breaksTheme.ts
 //
-// Color/label tokens for break activity categories. Referenced by
-// BreakSheet, and indirectly by ActiveActivitySession.
-//
-// These intentionally reuse the same five-hue family as the state metrics
-// (they're drawn from the same palette so the app reads as one system) but
-// are a different axis of meaning — activity type, not cognitive state —
-// so they're kept in their own table rather than aliased to METRIC_COLORS.
-// "Rest" gets a muted neutral rather than a bright accent: a category whose
-// whole point is "no stimulation" shouldn't be the loudest chip on the row.
+// Color/label/icon tokens for break activity categories. Referenced by
+// BreakSheet.
 
-import { colors } from './theme';
-import { BreakActivityCategory } from '../types/AppEvent.types';
+import { Wind, Footprints, CircleDot, Users, Moon } from "lucide-react-native";
+import type { LucideIcon } from "lucide-react-native";
+import { colors } from "./theme";
+import { BreakActivityCategory } from "../types/AppEvent.types";
 
 export const CATEGORY_COLORS: Record<BreakActivityCategory, string> = {
   breathing: colors.brand,
@@ -29,12 +24,16 @@ export const CATEGORY_SOFT_COLORS: Record<BreakActivityCategory, string> = {
   rest: 'rgba(154, 155, 192, 0.15)',
 };
 
-export const CATEGORY_GLYPHS: Record<BreakActivityCategory, string> = {
-  breathing: '◒',
-  movement: '↝',
-  mindfulness: '◎',
-  social: '◐',
-  rest: '☾',
+// Replaces the old unicode glyph table (◒ ↝ ◎ ◐ ☾) — real icon components
+// render consistently across platforms/fonts, unlike unicode glyphs, which
+// is exactly the kind of thing that reads as "placeholder" rather than
+// finished.
+export const CATEGORY_ICONS: Record<BreakActivityCategory, LucideIcon> = {
+  breathing: Wind,
+  movement: Footprints,
+  mindfulness: CircleDot,
+  social: Users,
+  rest: Moon,
 };
 
 export const CATEGORY_LABELS: Record<BreakActivityCategory, string> = {

@@ -18,6 +18,7 @@ export function createUserPreferencesRepo(db: SQLiteDatabase) {
         recommendationMode:    row.recommendation_mode ?? defaultPreferences.recommendationMode,
         maxRecommendations:    row.max_recommendations ?? defaultPreferences.maxRecommendations,
         enableActionableOnly:  row.enable_actionable_only === 1,
+        hasOnboarded:          row.has_onboarded === 1,
       };
     },
 
@@ -26,9 +27,9 @@ export function createUserPreferencesRepo(db: SQLiteDatabase) {
         INSERT INTO user_preferences (
           id, display_name, avatar_color, work_style, energy_pattern,
           stress_tolerance, recommendation_mode, max_recommendations,
-          enable_actionable_only, updated_at
+          enable_actionable_only, has_onboarded, updated_at
         )
-        VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
         ON CONFLICT(id) DO UPDATE SET
           display_name           = excluded.display_name,
           avatar_color           = excluded.avatar_color,
@@ -38,6 +39,7 @@ export function createUserPreferencesRepo(db: SQLiteDatabase) {
           recommendation_mode    = excluded.recommendation_mode,
           max_recommendations    = excluded.max_recommendations,
           enable_actionable_only = excluded.enable_actionable_only,
+          has_onboarded          = excluded.has_onboarded,
           updated_at             = excluded.updated_at
       `, [
         p.displayName,
@@ -48,6 +50,7 @@ export function createUserPreferencesRepo(db: SQLiteDatabase) {
         p.recommendationMode,
         p.maxRecommendations,
         p.enableActionableOnly ? 1 : 0,
+        p.hasOnboarded ? 1 : 0,
       ]);
     },
   };

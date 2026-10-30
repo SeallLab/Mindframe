@@ -15,6 +15,7 @@ import { DelayTaskDialog } from './DelayTaskDialog';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { SegmentedControl } from '../ui/SegmentedControl';
 import { EmptyState } from '../ui/EmptyState';
+import { TASK_ACTION_ICONS, TASK_ACTION_COLORS } from '../ui/taskActionIcons';
 import { colors } from '../../styling/theme';
 import { styles, calendarTheme } from '../../styling/components/calendar/Calendar.styles';
 
@@ -222,13 +223,13 @@ export function Calendar() {
             {item.status === 'in_progress' || item.status === 'delayed' ? (
               <View style={styles.actionsRow}>
                 <TouchableOpacity onPress={() => handleCompletePress(item.id)} style={styles.action} hitSlop={HIT_SLOP}>
-                  <Text style={styles.complete}>✓</Text>
+                  <TASK_ACTION_ICONS.complete size={17} color={TASK_ACTION_COLORS.complete} strokeWidth={2.5} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => handleRequestDelay(item)} style={styles.action} hitSlop={HIT_SLOP}>
-                  <Text style={styles.delay}>↷</Text>
+                  <TASK_ACTION_ICONS.delay size={17} color={TASK_ACTION_COLORS.delay} strokeWidth={2.5} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => handleSkipPress(item.id)} style={styles.action} hitSlop={HIT_SLOP}>
-                  <Text style={styles.skip}>✕</Text>
+                  <TASK_ACTION_ICONS.skip size={17} color={TASK_ACTION_COLORS.skip} strokeWidth={2.5} />
                 </TouchableOpacity>
               </View>
             ) : (

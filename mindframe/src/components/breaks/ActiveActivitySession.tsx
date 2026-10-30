@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Text, View } from "react-native";
+import { Check } from "lucide-react-native";
 import { BreakActivity } from "../../types/breaks/BreakActivity.types";
 import { Button } from "../ui/Button";
 import { ProgressRing } from "../ui/ProgressRing";
@@ -90,7 +91,7 @@ export function ActiveActivitySession({ activity, onComplete, onCancel }: Active
                 ],
               }}
             >
-              <Text style={styles.checkmark}>✓</Text>
+              <Check size={40} color={colors.energy} strokeWidth={3} />
             </Animated.View>
           ) : (
             <Text style={styles.timer}>

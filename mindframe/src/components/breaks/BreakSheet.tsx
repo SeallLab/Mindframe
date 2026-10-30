@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Animated, PanResponder, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Sparkles } from "lucide-react-native";
 import { breakActivities, BreakActivity } from "../../types/breaks/BreakActivity.types";
 import { BreakActivityCategory } from "../../types/AppEvent.types";
 import { useUserStateStore } from "../../store/useUserStateStore";
@@ -8,7 +9,7 @@ import { ActivityCard } from "../ui/ActivityCard";
 import { IconButton } from "../ui/IconButton";
 import { EmptyState } from "../ui/EmptyState";
 import { ActiveActivitySession } from "./ActiveActivitySession";
-import { CATEGORY_COLORS, CATEGORY_GLYPHS, CATEGORY_LABELS } from "../../styling/breaksTheme";
+import { CATEGORY_COLORS, CATEGORY_ICONS, CATEGORY_LABELS } from "../../styling/breaksTheme";
 import { colors } from "../../styling/theme";
 import { styles } from "../../styling/components/breaks/BreakSheet.styles";
 
@@ -38,8 +39,9 @@ function CategoryChip({
 }) {
   const isAll = filter === "all";
   const accent = isAll ? colors.brand : CATEGORY_COLORS[filter];
-  const glyph = isAll ? "✳" : CATEGORY_GLYPHS[filter];
+  const Icon = isAll ? Sparkles : CATEGORY_ICONS[filter];
   const label = isAll ? "All" : CATEGORY_LABELS[filter];
+  const iconColor = isActive ? colors.inkOnBrand : accent;
 
   // Active = solid accent fill. Inactive = transparent with just a colored
   // hairline, so the category stays identifiable without every chip in the
@@ -52,8 +54,8 @@ function CategoryChip({
         { backgroundColor: isActive ? accent : "transparent", borderColor: accent },
       ]}
     >
-      <Text style={[styles.chipGlyph, { color: isActive ? colors.inkOnBrand : accent }]}>{glyph}</Text>
-      <Text style={[styles.chipLabel, { color: isActive ? colors.inkOnBrand : accent }]}>{label}</Text>
+      <Icon size={14} color={iconColor} />
+      <Text style={[styles.chipLabel, { color: iconColor }]}>{label}</Text>
     </View>
   );
 }
@@ -128,7 +130,7 @@ export function BreakSheet({ onClose }: BreakSheetProps) {
     // is still showing its "Nice work" hold state (active hasn't been reset
     // yet). Resetting `active` immediately here would swap the visible
     // content back to the category list for a frame before the close
-    // animation even starts, which is the "weird popping" this fixes.
+    // animation even starts.
     onClose();
     setTimeout(() => setActive(null), SHEET_CLOSE_MS);
   }

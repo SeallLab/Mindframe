@@ -3,6 +3,21 @@ import { Task, ScheduledTask } from "../../types/Task.types";
 
 export type FullTask = Task & ScheduledTask;
 
+// Subtasks are the one JSON-encoded column. Parsing them inside the row
+// mapper meant a single corrupted value threw out of getAll() and took
+// every task down with it. A bad value now just costs that one task its
+// subtasks, and everything else still loads.
+function parseSubtasks(raw: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    console.error("taskRepo: couldn't parse a task's subtasks, dropping them", e);
+    return [];
+  }
+}
+
 function mapRowToTask(row: any): FullTask {
   return {
     id: row.id,
@@ -13,7 +28,7 @@ function mapRowToTask(row: any): FullTask {
     priority: row.priority,
     status: row.status,
     isRecommended: !!row.is_recommended,
-    subtasks: row.subtasks ? JSON.parse(row.subtasks) : [],
+    subtasks: parseSubtasks(row.subtasks),
 
     cognitiveLoad: row.cognitive_load,
     durationMinutes: row.duration_minutes,

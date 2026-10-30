@@ -1,8 +1,9 @@
 export const ROUTES = {
   // Root stack
-  LOADING:  "Loading",
-  ERROR:    "Error",
-  MAIN:     "Main",
+  LOADING:    "Loading",
+  ERROR:      "Error",
+  ONBOARDING: "Onboarding",
+  MAIN:       "Main",
   // Tabs
   HOME:     "Home",
   TASKS:    "Tasks",

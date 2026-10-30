@@ -30,10 +30,6 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: spacing.md,
   },
-  icon: {
-    fontSize: 22,
-    color: colors.stress,
-  },
   headline: {
     ...type.subtitle,
     color: colors.ink,
