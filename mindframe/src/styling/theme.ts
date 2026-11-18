@@ -1,59 +1,55 @@
 // src/styling/theme.ts
 //
-// Single source of truth for color, radius, shadow, spacing, and type
-// tokens. Every *.styles.ts file reads from here — no raw hex values, radii,
-// or shadow configs in component-level style files.
+// "Dusk" — a dark pastel palette. Backgrounds are a deep plum-indigo (not
+// neutral navy/black, which is what reads as generic), and every accent is
+// a desaturated pastel that stays legible on it. Pastels also let us put
+// dark text on a filled accent (inkOnBrand) instead of white-on-neon.
+//
+// Every token name from the previous palette is preserved, so style files
+// that read `colors.brand`, `radius.md`, etc. pick this up with no edits.
 
 // ── Colors ───────────────────────────────────────────────────────────────
 
 export const colors = {
-  // Surfaces
-  bg: '#0C0D1F',
-  surface: '#15172E',
-  surfaceAlt: '#1D1F3B',
-  surfaceSunken: '#0F1026',
-  overlay: 'rgba(4, 5, 15, 0.75)',
-  border: '#2A2C4D',
-  borderStrong: '#3A3D66',
+  // Surfaces — all lean violet so gradients and artwork sit in the same family
+  bg: '#120F26',
+  surface: '#1C1838',
+  surfaceAlt: '#272150',
+  surfaceSunken: '#0E0B1E',
+  overlay: 'rgba(10, 7, 24, 0.78)',
+  border: '#322C5C',
+  borderStrong: '#463E78',
 
   // Text
-  ink: '#F3F3FA',
-  inkOnBrand: '#0C0D1F',
-  inkMuted: '#9A9BC0',
-  inkFaint: '#63648C',
+  ink: '#F5F1FF',
+  inkOnBrand: '#17122E', // dark text for use on pastel fills
+  inkMuted: '#BAB2DE',
+  inkFaint: '#8C84B8',
 
-  // Metric accents — each owns exactly one meaning app-wide (stress,
-  // energy, focus, momentum, confidence). Don't reuse these for unrelated
-  // UI chrome — see `positive` below for why that matters.
-  brand: '#8B6BF2', // focus
-  brandSoft: 'rgba(139, 107, 242, 0.15)',
+  // Metric accents — each owns exactly one meaning app-wide. Don't reuse
+  // them for unrelated chrome (see `positive` for why).
+  brand: '#B7A4FF', // focus — lavender
+  brandSoft: 'rgba(183, 164, 255, 0.16)',
 
-  energy: '#FF7A45',
-  energySoft: 'rgba(255, 122, 69, 0.15)',
+  energy: '#FFB38A', // peach
+  energySoft: 'rgba(255, 179, 138, 0.16)',
 
-  stress: '#F5457A',
-  stressSoft: 'rgba(245, 69, 122, 0.15)',
+  stress: '#FF8FB4', // rose
+  stressSoft: 'rgba(255, 143, 180, 0.16)',
 
-  momentum: '#4FA0FF',
-  momentumSoft: 'rgba(79, 160, 255, 0.15)',
+  momentum: '#8CC7FF', // sky
+  momentumSoft: 'rgba(140, 199, 255, 0.16)',
 
-  confidence: '#FFC24B',
-  confidenceSoft: 'rgba(255, 194, 75, 0.15)',
+  confidence: '#FFD58F', // butter
+  confidenceSoft: 'rgba(255, 213, 143, 0.16)',
 
-  // A save-confirmation checkmark isn't a cognitive metric — it doesn't
-  // belong to stress/energy/focus/momentum/confidence, so it gets its own
-  // token instead of borrowing one of theirs (e.g. `energy`, which would
-  // read as "your energy went up," not "this saved").
-  positive: '#5FD9A0',
+  // Not a cognitive metric (a "saved" tick isn't "your energy went up"), so
+  // it gets its own token rather than borrowing one of the five.
+  positive: '#8BE3C5', // mint
+  positiveSoft: 'rgba(139, 227, 197, 0.16)',
 } as const;
 
 // ── Semantic aliases ─────────────────────────────────────────────────────
-//
-// Recommendation categories (HomeScreen's CATEGORY_STYLE) are a different
-// axis from the five state metrics — "this card is about recovery" isn't
-// the same claim as "energyLevel is low" — but they map onto the same
-// underlying colors, so they're aliased here rather than given a second,
-// independent palette.
 
 export const semantic = {
   recovery: colors.energy,
@@ -72,17 +68,34 @@ export const semantic = {
   celebrateSoft: colors.confidenceSoft,
 } as const;
 
+// User-pickable colors (task color, avatar color). Pastels from the same
+// family as the UI so a user's own choices never look pasted-in.
+export const swatches = [
+  colors.brand,
+  colors.stress,
+  colors.energy,
+  colors.confidence,
+  colors.positive,
+  colors.momentum,
+  '#9FB4FF', // periwinkle
+  '#E3A8F5', // orchid
+] as const;
+
+/** "#RRGGBB" + 0–1 alpha → "rgba(r, g, b, a)". Six-digit hex only. */
+export function alpha(hex: string, a: number): string {
+  const n = parseInt(hex.replace('#', ''), 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+}
+
 // ── Radius ───────────────────────────────────────────────────────────────
 //
-// Deliberately not uniform — radius signals hierarchy. Hero/modal surfaces
-// get the largest radius, standard cards/rows a mid radius, small controls
-// (inputs, small badges) the smallest, chips/pills are fully round.
+// Not uniform on purpose — radius signals hierarchy (see earlier plan).
 
 export const radius = {
   sm: 10,
   md: 16,
-  lg: 20,
-  xl: 28,
+  lg: 22,
+  xl: 32,
   pill: 999,
 } as const;
 
@@ -100,78 +113,50 @@ export const spacing = {
 
 // ── Shadow ───────────────────────────────────────────────────────────────
 //
-// Only floating/emphasis surfaces (modals, the break mini-bar, toasts) get
-// a shadow at all — plain cards and list rows use a `border` hairline
-// instead (see radius comment above; same "hierarchy, not uniformity"
-// rule). `glow` is for the rarer case of a colored emphasis glow (e.g. one
-// state-driven dot or active ring) — pass the metric/accent color in.
+// Black shadows vanish on a dark background, so `raised` is a deep violet
+// that actually reads as depth here. `glow` is a colored halo for emphasis.
 
 export const shadow = {
   raised: {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 20,
-    elevation: 6,
+    shadowColor: '#05030F',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.55,
+    shadowRadius: 24,
+    elevation: 8,
   },
   glow: (color: string) => ({
     shadowColor: color,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.55,
-    shadowRadius: 10,
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
     elevation: 8,
   }),
 } as const;
 
 // ── Type ─────────────────────────────────────────────────────────────────
 //
-// Two families, distinct roles: Space Grotesk for headlines/titles (its
-// squared-off letterforms are what should make headers feel deliberate
-// rather than default-system-font), Manrope for everything else. Register
-// both via expo-font / useFonts before use — these tokens assume the family
-// names below are the ones you load under.
+// Fraunces (a soft, slightly quirky serif) carries every headline — it's
+// what makes the app feel warm and a bit storybook instead of default-UI.
+// Manrope handles everything functional. Family names match the
+// @expo-google-fonts packages loaded in fonts.ts.
 //
-// No role here uses textTransform: 'uppercase' — that's applied (or not)
-// per-component, and intentionally isn't the default (see design plan:
-// avoid the all-caps-eyebrow-label tell).
+// fontWeight is intentionally NOT set on these: each weight is its own
+// loaded font file, and pairing a family with fontWeight makes Android
+// fall back to a synthetic or system face.
 
 export const type = {
-  display: {
-    fontFamily: 'SpaceGrotesk-Bold',
-    fontWeight: '700' as const,
-    fontSize: 28,
-    letterSpacing: -0.5,
-  },
-  title: {
-    fontFamily: 'SpaceGrotesk-SemiBold',
-    fontWeight: '700' as const,
-    fontSize: 22,
-    letterSpacing: -0.3,
-  },
-  subtitle: {
-    fontFamily: 'SpaceGrotesk-Medium',
-    fontWeight: '600' as const,
-    fontSize: 18,
-  },
-  bodyStrong: {
-    fontFamily: 'Manrope-SemiBold',
-    fontWeight: '600' as const,
-    fontSize: 15,
-  },
-  body: {
-    fontFamily: 'Manrope-Regular',
-    fontWeight: '400' as const,
-    fontSize: 15,
-  },
-  caption: {
-    fontFamily: 'Manrope-SemiBold',
-    fontWeight: '600' as const,
-    fontSize: 12,
-    letterSpacing: 0.2,
-  },
-  micro: {
-    fontFamily: 'Manrope-Medium',
-    fontWeight: '500' as const,
-    fontSize: 11,
+  display: { fontFamily: 'Fraunces_700Bold', fontSize: 30, letterSpacing: -0.4 },
+  title: { fontFamily: 'Fraunces_600SemiBold', fontSize: 24, letterSpacing: -0.3 },
+  subtitle: { fontFamily: 'Fraunces_600SemiBold', fontSize: 18 },
+  bodyStrong: { fontFamily: 'Manrope_600SemiBold', fontSize: 15 },
+  body: { fontFamily: 'Manrope_400Regular', fontSize: 15 },
+  caption: { fontFamily: 'Manrope_600SemiBold', fontSize: 12, letterSpacing: 0.2 },
+  micro: { fontFamily: 'Manrope_500Medium', fontSize: 11 },
+  // For readouts that change in place (timer, stat values): tabular figures
+  // keep the digits from shifting width as they tick.
+  numeral: {
+    fontFamily: 'Manrope_700Bold',
+    fontSize: 24,
+    fontVariant: ['tabular-nums'] as ('tabular-nums')[],
   },
 } as const;

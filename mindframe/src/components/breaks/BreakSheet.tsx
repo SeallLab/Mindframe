@@ -7,6 +7,8 @@ import { BreakActivityCategory } from "../../types/AppEvent.types";
 import { useUserStateStore } from "../../store/useUserStateStore";
 import { ActivityCard } from "../ui/ActivityCard";
 import { IconButton } from "../ui/IconButton";
+import { GradientFill } from "../ui/GradientFill";
+import { HeroHeader } from "../ui/HeroHeader";
 import { EmptyState } from "../ui/EmptyState";
 import { ActiveActivitySession } from "./ActiveActivitySession";
 import { CATEGORY_COLORS, CATEGORY_ICONS, CATEGORY_LABELS } from "../../styling/breaksTheme";
@@ -147,20 +149,22 @@ export function BreakSheet({ onClose }: BreakSheetProps) {
         { transform: [{ translateY }] },
       ]}
     >
+      <GradientFill name="sheet" />
+
       {/* Drag handle — swipe down to dismiss */}
       <View style={styles.handleWrap} {...panResponder.panHandlers}>
         <View style={styles.handle} />
       </View>
 
-      <View style={styles.header}>
-        <View style={styles.headerText}>
-          <Text style={styles.title}>Take a break</Text>
-          <Text style={styles.subtitle}>
-            {active ? active.title : "Pick something that fits how you're feeling right now."}
-          </Text>
-        </View>
-        <IconButton glyph="✕" label="Close" onPress={onClose} />
-      </View>
+      {/* Dawn scene: this is the "restore" half of the app, so it gets the
+          warm sunrise rather than the night sky used for state/stats. */}
+      <HeroHeader
+        variant="dawn"
+        height={132}
+        title="Take a break"
+        subtitle={active ? active.title : "Pick something that fits how you're feeling right now."}
+        right={<IconButton glyph="✕" label="Close" onPress={onClose} />}
+      />
 
       <Animated.View style={{ flex: 1, opacity: contentOpacity }}>
         {active ? (

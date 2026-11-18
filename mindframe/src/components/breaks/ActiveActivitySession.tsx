@@ -4,6 +4,7 @@ import { Check } from "lucide-react-native";
 import { BreakActivity } from "../../types/breaks/BreakActivity.types";
 import { Button } from "../ui/Button";
 import { ProgressRing } from "../ui/ProgressRing";
+import { OrbGlow } from "../art/SceneArt";
 import { colors } from "../../styling/theme";
 import { gradients } from "../../styling/gradients";
 import { styles } from "../../styling/components/breaks/ActiveActivitySession.styles";
@@ -74,6 +75,11 @@ export function ActiveActivitySession({ activity, onComplete, onCancel }: Active
       <Text style={styles.title}>{activity.title}</Text>
 
       <View style={styles.dialWrap}>
+        {/* Soft halo in the ring's own color, so the dial looks lit from
+            within. Absolute, and first, so it sits behind the ring. */}
+        <View style={styles.halo} pointerEvents="none">
+          <OrbGlow size={DIAL_SIZE * 2} color={gradient[0]} opacity={0.32} />
+        </View>
         <ProgressRing
           size={DIAL_SIZE}
           strokeWidth={DIAL_STROKE}

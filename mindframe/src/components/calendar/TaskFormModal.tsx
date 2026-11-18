@@ -15,23 +15,16 @@ import { ScheduledTask } from '../../types/Task.types';
 import { TaskPriority, TaskStatus } from '../../types/calendar/Calendar.types';
 import { dateStringToLocalDate, dateToTimeString, formatDateString, timeStringToLocalDate } from '../../utils/calendarUtils';
 import { DateTimeField } from '../ui/DateTimeField';
-import { colors } from '../../styling/theme';
+import { colors, swatches } from '../../styling/theme';
 import { styles } from '../../styling/components/calendar/TaskFormModal.styles';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const PRIORITY_OPTIONS: TaskPriority[] = ['low', 'medium', 'high'];
 
-const COLOR_OPTIONS = [
-  colors.brand,
-  colors.energy,
-  '#D85A30',
-  '#185FA5',
-  colors.momentum,
-  colors.confidence,
-  '#3B6D11',
-  colors.stress,
-];
+// The shared pastel set — the old list mixed in saturated hexes that clashed
+// with everything else on screen.
+const COLOR_OPTIONS = swatches;
 
 const DEFAULT_STATUS: TaskStatus = 'in_progress';
 

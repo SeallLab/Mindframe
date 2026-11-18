@@ -1,12 +1,14 @@
 import React, { useRef } from "react";
-import { Animated, Modal, Text, View } from "react-native";
+import { Animated, Modal, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { BatteryLow, AlertCircle } from "lucide-react-native";
 import { useUserStateStore } from "../../store/useUserStateStore";
 import { useBreakPromptStore } from "../../store/useBreakPromptStore";
 import { THRESHOLDS } from "../../types/UserState.types";
 import { Button } from "../ui/Button";
-import { colors } from "../../styling/theme";
-import { styles } from "../../styling/components/breaks/BreakPromptModal.styles";
+import { GradientButton } from "../ui/GradientButton";
+import { SceneArt } from "../art/SceneArt";
+import { colors, spacing } from "../../styling/theme";
+import { styles, CARD_MAX_WIDTH, ART_HEIGHT } from "../../styling/components/breaks/BreakPromptModal.styles";
 
 export function BreakPromptModal() {
   const state = useUserStateStore((s) => s.state);
@@ -14,6 +16,7 @@ export function BreakPromptModal() {
   const canShow = useBreakPromptStore((s) => s.canShow);
   const dismiss = useBreakPromptStore((s) => s.dismiss);
   const openModal = useBreakPromptStore((s) => s.openModal);
+  const { width: screenWidth } = useWindowDimensions();
 
   const isCritical =
     state.energyLevel < THRESHOLDS.criticalEnergy ||
@@ -21,10 +24,9 @@ export function BreakPromptModal() {
 
   const visible = isCritical && canShow();
 
-  // `animationType="fade"` on the Modal fades the whole overlay — backdrop
-  // and card — uniformly and at once, which reads as an abrupt flash.
-  // Animating the card itself (scale up slightly while it fades in, on
-  // native `onShow`) makes it read as arriving instead of just appearing.
+  // `animationType="fade"` fades backdrop and card together as one flat
+  // ramp, which reads as a flash. Scaling the card in on native `onShow`
+  // makes it read as arriving.
   const cardAnim = useRef(new Animated.Value(0)).current;
 
   function handleShow() {
@@ -48,6 +50,11 @@ export function BreakPromptModal() {
 
   const isEnergyDriven = state.energyLevel < THRESHOLDS.criticalEnergy;
 
+  // The scene fills the card's inner width: the card is capped at
+  // CARD_MAX_WIDTH, and the backdrop pads both sides by spacing.xl.
+  const cardWidth = Math.min(CARD_MAX_WIDTH, screenWidth - spacing.xl * 2);
+  const artWidth = cardWidth - spacing.xl * 2;
+
   return (
     <Modal
       visible={visible}
@@ -68,13 +75,21 @@ export function BreakPromptModal() {
             },
           ]}
         >
-          <View style={styles.iconWrap}>
-            {isEnergyDriven ? (
-              <BatteryLow size={22} color={colors.stress} />
-            ) : (
-              <AlertCircle size={22} color={colors.stress} />
-            )}
+          {/* Low energy → a sleepy night sky; high stress → dusk. The badge
+              hangs in the sky like a small planet. */}
+          <View style={styles.artWrap}>
+            <View style={StyleSheet.absoluteFill} pointerEvents="none">
+              <SceneArt variant={isEnergyDriven ? "night" : "dusk"} width={artWidth} height={ART_HEIGHT} />
+            </View>
+            <View style={styles.iconWrap}>
+              {isEnergyDriven ? (
+                <BatteryLow size={22} color={colors.stress} />
+              ) : (
+                <AlertCircle size={22} color={colors.stress} />
+              )}
+            </View>
           </View>
+
           <Text style={styles.headline}>
             {isEnergyDriven ? "You're running on empty" : "Stress is at a critical level"}
           </Text>
@@ -84,7 +99,7 @@ export function BreakPromptModal() {
               : "Your decision quality and retention drop sharply here. A short break now will likely cost you less than pushing through."}
           </Text>
           <View style={styles.actions}>
-            <Button label="Start a break" variant="danger" onPress={handleStartActivity} />
+            <GradientButton label="Start a break" variant="warm" onPress={handleStartActivity} />
             <Button label="Not now" variant="ghost" onPress={handleDismiss} />
           </View>
         </Animated.View>

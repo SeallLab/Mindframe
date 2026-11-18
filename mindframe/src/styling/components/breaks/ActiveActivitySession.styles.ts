@@ -16,13 +16,15 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: spacing.xl,
   },
-  // Timer readout uses the display type role (Space Grotesk) so it reads as
-  // an instrument reading rather than generic body text — see design plan.
+  // Absolute so it adds no layout; centered by dialWrap's alignItems/justifyContent.
+  halo: {
+    position: "absolute",
+  },
+  // Tabular figures keep the digits from shifting width as they tick down.
   timer: {
-    ...type.display,
+    ...type.numeral,
     fontSize: 34,
     color: colors.ink,
-    fontVariant: ["tabular-nums"],
   },
   completeLabel: {
     ...type.subtitle,

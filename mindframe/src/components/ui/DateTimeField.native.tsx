@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { Modal, Platform, Pressable, Text, View } from "react-native";
 import DateTimePicker, { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
+import { Calendar, Clock } from "lucide-react-native";
 import { Button } from "./Button";
 import { styles } from "../../styling/components/ui/DateTimeField.styles";
+import { colors } from "../../styling/theme";
 
 type FieldMode = "date" | "time";
 
@@ -40,6 +42,7 @@ function formatValue(value: Date, mode: FieldMode): string {
  */
 export function DateTimeField({ label, value, mode, onChange, error }: DateTimeFieldProps) {
   const [showPicker, setShowPicker] = useState(false);
+  const Icon = mode === "date" ? Calendar : Clock;
 
   function openPicker() {
     if (Platform.OS === "android") {
@@ -66,7 +69,7 @@ export function DateTimeField({ label, value, mode, onChange, error }: DateTimeF
         accessibilityRole="button"
         accessibilityLabel={`${label}: ${formatValue(value, mode)}`}
       >
-        <Text style={styles.glyph}>{mode === "time" ? "🕐" : "📅"}</Text>
+        <Icon size={16} color={colors.inkMuted} />
         <Text style={styles.value}>{formatValue(value, mode)}</Text>
       </Pressable>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -87,7 +90,7 @@ export function DateTimeField({ label, value, mode, onChange, error }: DateTimeF
                   value={value}
                   mode={mode}
                   display={mode === "time" ? "spinner" : "inline"}
-                  themeVariant="light"
+                  themeVariant="dark"
                   style={mode === "date" ? styles.datePicker : styles.timePicker}
                   onChange={(_event, selected) => {
                     if (selected) onChange(selected);

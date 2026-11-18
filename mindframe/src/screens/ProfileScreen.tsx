@@ -4,21 +4,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserPreferencesStore } from "../store/useUserPreferencesStore";
 import { PreferencesForm } from "../components/profile/PreferencesForm";
 import { UserPreferences } from "../types/UserPreferences.types";
-import { ScreenHeader } from "../components/ui/ScreenHeader";
+import { HeroHeader } from "../components/ui/HeroHeader";
 import { Toast, ToastStatus } from "../components/profile/Toast";
-import { colors } from "../styling/theme";
+import { colors, swatches } from "../styling/theme";
 import { styles } from "../styling/screens/ProfileScreen.styles";
 
-const AVATAR_COLORS = [
-  colors.brand,
-  "#8b5cf6",
-  colors.confidence,
-  colors.momentum,
-  colors.energy,
-  "#06b6d4",
-  "#eab308",
-  colors.stress,
-];
+// Same pastel set used for task colors, so a user's picks always sit well on the palette.
+const AVATAR_COLORS = swatches;
 
 const SAVE_DEBOUNCE_MS = 500;
 const SAVED_DISPLAY_MS = 1500;
@@ -34,16 +26,6 @@ export function ProfileScreen() {
   useEffect(() => {
     setLocalName(preferences.displayName);
   }, [isHydrated]);
-
-  // Clear any in-flight debounce/toast timers on unmount so they can't fire
-  // setState calls after this screen has gone away (e.g. user changes a
-  // preference then immediately switches tabs).
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
-    };
-  }, []);
 
   const handleChange = useCallback(
     (patch: Partial<UserPreferences>) => {
@@ -78,54 +60,56 @@ export function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <ScreenHeader title="Profile" subtitle="How you work, and how we help" />
-
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Identity card */}
-        <View style={styles.identityCard}>
-          <View style={styles.avatarRow}>
-            <View style={[styles.avatar, { backgroundColor: preferences.avatarColor }]}>
-              <Text style={styles.avatarText}>
-                {preferences.displayName ? preferences.displayName.charAt(0).toUpperCase() : "?"}
-              </Text>
+        {/* Header lives inside the scroll view so it scrolls away with the content.
+            It's outside the padded wrapper below so the artwork stays full-width. */}
+        <HeroHeader variant="dawn" title="Profile" subtitle="How you work, and how we help" />
+        <View style={styles.scrollContent}>
+          {/* Identity card */}
+          <View style={styles.identityCard}>
+            <View style={styles.avatarRow}>
+              <View style={[styles.avatar, { backgroundColor: preferences.avatarColor }]}>
+                <Text style={styles.avatarText}>
+                  {preferences.displayName ? preferences.displayName.charAt(0).toUpperCase() : "?"}
+                </Text>
+              </View>
+
+              <TextInput
+                style={styles.input}
+                value={localName}
+                placeholder="Your name"
+                placeholderTextColor={colors.inkFaint}
+                maxLength={40}
+                onChangeText={setLocalName}
+                onBlur={handleNameBlur}
+              />
             </View>
 
-            <TextInput
-              style={styles.input}
-              value={localName}
-              placeholder="Your name"
-              placeholderTextColor={colors.inkFaint}
-              maxLength={40}
-              onChangeText={setLocalName}
-              onBlur={handleNameBlur}
-            />
+            <Text style={styles.colorLabel}>Avatar color</Text>
+            <View style={styles.colorPicker}>
+              {AVATAR_COLORS.map((color) => {
+                const selected = preferences.avatarColor === color;
+                return (
+                  <Pressable
+                    key={color}
+                    onPress={() => handleChange({ avatarColor: color })}
+                    style={[styles.colorSwatch, { backgroundColor: color }, selected && styles.colorSelected]}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Choose avatar color ${color}`}
+                  />
+                );
+              })}
+            </View>
           </View>
 
-          <Text style={styles.colorLabel}>Avatar color</Text>
-          <View style={styles.colorPicker}>
-            {AVATAR_COLORS.map((color) => {
-              const selected = preferences.avatarColor === color;
-              return (
-                <Pressable
-                  key={color}
-                  onPress={() => handleChange({ avatarColor: color })}
-                  style={[styles.colorSwatch, { backgroundColor: color }, selected && styles.colorSelected]}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Choose avatar color ${color}`}
-                />
-              );
-            })}
-          </View>
+          {/* Preferences */}
+          <PreferencesForm preferences={preferences} onChange={handleChange} />
+
+          <View style={styles.bottomPad} />
         </View>
-
-        {/* Preferences */}
-        <PreferencesForm preferences={preferences} onChange={handleChange} />
-
-        <View style={styles.bottomPad} />
       </ScrollView>
 
       <Toast status={saveStatus} />

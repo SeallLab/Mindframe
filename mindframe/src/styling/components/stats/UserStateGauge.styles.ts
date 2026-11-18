@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { colors } from "../../theme";
+import { colors, type } from "../../theme";
 
 const SIZE = 80;
 
@@ -10,14 +10,13 @@ export const styles = StyleSheet.create({
     marginTop: -4,
   },
   value: {
+    ...type.numeral,
     fontSize: 16,
-    fontWeight: "700",
     marginTop: -8,
   },
   label: {
-    fontSize: 11,
+    ...type.micro,
     color: colors.inkFaint,
     marginTop: 2,
-    fontWeight: "500",
   },
 });

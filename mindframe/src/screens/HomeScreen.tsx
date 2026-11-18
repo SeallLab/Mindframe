@@ -7,16 +7,17 @@ import { Recommendation, RecommendationCategory } from "../types/recommendations
 import { Calendar } from "../components/calendar/Calendar";
 import { BreakMiniBar, getBreakEmphasis } from "../components/breaks/BreakMiniBar";
 import { BreakSheet } from "../components/breaks/BreakSheet";
-import { ScreenHeader } from "../components/ui/ScreenHeader";
-import { semantic } from "../styling/theme";
+import { HeroHeader } from "../components/ui/HeroHeader";
+import { GradientFill } from "../components/ui/GradientFill";
+import { alpha, colors, radius, semantic } from "../styling/theme";
 import { styles, banner } from "../styling/screens/HomeScreen.styles";
 
-const CATEGORY_STYLE: Record<RecommendationCategory, { bg: string; accent: string; label: string }> = {
-  recovery:   { bg: semantic.recoverySoft, accent: semantic.recovery, label: "Recovery" },
-  focus:      { bg: semantic.focusSoft, accent: semantic.focus, label: "Focus" },
-  motivation: { bg: semantic.motivationSoft, accent: semantic.motivation, label: "Motivation" },
-  warning:    { bg: semantic.warningSoft, accent: semantic.warning, label: "Warning" },
-  celebrate:  { bg: semantic.celebrateSoft, accent: semantic.celebrate, label: "Nice work" },
+const CATEGORY_STYLE: Record<RecommendationCategory, { accent: string; label: string }> = {
+  recovery:   { accent: semantic.recovery, label: "Recovery" },
+  focus:      { accent: semantic.focus, label: "Focus" },
+  motivation: { accent: semantic.motivation, label: "Motivation" },
+  warning:    { accent: semantic.warning, label: "Warning" },
+  celebrate:  { accent: semantic.celebrate, label: "Nice work" },
 };
 
 // ─── Recommendation banner ─────────────────────────────────────────────────
@@ -24,7 +25,16 @@ const CATEGORY_STYLE: Record<RecommendationCategory, { bg: string; accent: strin
 function RecommendationBanner({ rec }: { rec: Recommendation }) {
   const s = CATEGORY_STYLE[rec.category];
   return (
-    <View style={[banner.wrap, { backgroundColor: s.bg }]}>
+    // Radius/overflow are set here (not left to banner.wrap) because the
+    // gradient wash is an absolutely-positioned child that has to be
+    // clipped to the card's shape.
+    <View
+      style={[
+        banner.wrap,
+        { backgroundColor: colors.surface, borderRadius: radius.lg, overflow: "hidden" },
+      ]}
+    >
+      <GradientFill colors={[alpha(s.accent, 0.3), alpha(s.accent, 0.04)]} direction="diagonal" />
       <View style={[banner.strip, { backgroundColor: s.accent }]} />
       <View style={banner.body}>
         <View style={banner.row}>
@@ -64,13 +74,9 @@ export function HomeScreen() {
   const emphasis = getBreakEmphasis(state);
   const { weekday, date } = formatWeekdayDate();
 
-  // The recommendation engine re-runs on every dispatch and can swap the
-  // top recommendation out for an entirely different one (different
-  // category, headline, everything) with no transition of its own. Cross-
-  // fading on change means a new recommendation arrives rather than just
-  // replacing the old one mid-glance. Keyed on `id` rather than object
-  // identity, since a fresh (but equal) recommendation object can be
-  // produced by the engine without actually being a different suggestion.
+  // Cross-fade when the top recommendation changes (keyed on id, not object
+  // identity — the engine can hand back an equal-but-new object without it
+  // being a different suggestion).
   const bannerOpacity = useRef(new Animated.Value(topRec ? 1 : 0)).current;
   const lastRecId = useRef<string | null>(topRec?.id ?? null);
 
@@ -91,7 +97,7 @@ export function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <ScreenHeader title={weekday} subtitle={date} />
+      <HeroHeader variant="dusk" title={weekday} subtitle={date} />
 
       {topRec && (
         <Animated.View style={{ opacity: bannerOpacity }}>
