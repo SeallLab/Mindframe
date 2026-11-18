@@ -4,12 +4,31 @@ import { Task, ScheduledTask } from "../../types/Task.types";
 export type FullTask = Task & ScheduledTask;
 const KEY = "tasks";
 
+// Reads degrade gracefully: a missing, unparsable, or wrongly-shaped value
+// yields an empty list rather than throwing, so one bad write can't make
+// the app unable to start. Note the trade-off: the next successful write
+// replaces whatever unreadable data was there.
 async function readAll(): Promise<FullTask[]> {
-  const raw = await AsyncStorage.getItem(KEY);
-  return raw ? JSON.parse(raw) : [];
+  try {
+    const raw = await AsyncStorage.getItem(KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    console.error("taskRepo: couldn't read stored tasks, starting from an empty list", e);
+    return [];
+  }
 }
+
+// Writes do NOT swallow errors. A failed save that looks like it succeeded
+// is silent data loss — better that the caller sees the rejection.
 async function writeAll(tasks: FullTask[]): Promise<void> {
-  await AsyncStorage.setItem(KEY, JSON.stringify(tasks));
+  try {
+    await AsyncStorage.setItem(KEY, JSON.stringify(tasks));
+  } catch (e) {
+    console.error("taskRepo: couldn't persist tasks", e);
+    throw e;
+  }
 }
 
 export function createTaskRepo(_db?: unknown) {

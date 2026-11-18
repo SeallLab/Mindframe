@@ -12,6 +12,7 @@ export const styles = StyleSheet.create({
     minWidth: 76,
     borderWidth: 1,
     borderColor: colors.border,
+    overflow: "hidden", // clips the accent wash to the rounded corners
   },
   accentDot: {
     width: 6,
@@ -19,10 +20,11 @@ export const styles = StyleSheet.create({
     borderRadius: 3,
     marginBottom: 6,
   },
+  // No textTransform: 'uppercase' — see TaskDetailModal.styles.ts
+  // sectionLabel for the same change and rationale.
   label: {
     ...type.micro,
     color: colors.inkMuted,
-    textTransform: "uppercase",
     marginBottom: 6,
   },
   valueRow: {
@@ -31,8 +33,8 @@ export const styles = StyleSheet.create({
     gap: 2,
   },
   value: {
+    ...type.numeral,
     fontSize: 24,
-    fontWeight: "700",
     color: colors.ink,
     lineHeight: 28,
   },

@@ -1,5 +1,5 @@
-import React, { useMemo, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, Platform } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, TouchableOpacity, FlatList, Platform, LayoutAnimation, UIManager } from 'react-native';
 import {
   CalendarProvider,
   ExpandableCalendar,
@@ -15,6 +15,7 @@ import { DelayTaskDialog } from './DelayTaskDialog';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { SegmentedControl } from '../ui/SegmentedControl';
 import { EmptyState } from '../ui/EmptyState';
+import { TASK_ACTION_ICONS, TASK_ACTION_COLORS } from '../ui/taskActionIcons';
 import { colors } from '../../styling/theme';
 import { styles, calendarTheme } from '../../styling/components/calendar/Calendar.styles';
 
@@ -25,6 +26,21 @@ const FILTER_OPTIONS: { value: ListFilter; label: string }[] = [
   { value: 'active', label: 'Active' },
   { value: 'done', label: 'Done' },
 ];
+
+// Android needs this opt-in for LayoutAnimation; iOS (and RN's new
+// architecture on Android) have it enabled by default. Calling it where
+// it's unsupported is a harmless no-op.
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimentalAndroid) {
+  UIManager.setLayoutAnimationEnabledExperimentalAndroid(true);
+}
+
+// Call immediately before any state change that adds, removes, or
+// reorders what's visible in the daily task list (completing/delaying/
+// skipping/deleting a task, changing the filter, or switching days) so the
+// list animates the change instead of snapping to the new layout.
+function animateListChange() {
+  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+}
 
 function applyFilter(tasks: ScheduledTask[], filter: ListFilter): ScheduledTask[] {
   if (filter === 'all') return tasks;
@@ -47,6 +63,7 @@ export function Calendar() {
   const [delayTarget, setDelayTarget] = useState<ScheduledTask | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ScheduledTask | null>(null);
   const [filter, setFilter] = useState<ListFilter>('all');
+  const [webExpanded, setWebExpanded] = useState(false);
 
   const {
     tasks,
@@ -82,7 +99,10 @@ export function Calendar() {
   };
 
   const handleConfirmDelay = (newDate: string) => {
-    if (delayTarget) delayTask(delayTarget.id, newDate);
+    if (delayTarget) {
+      animateListChange();
+      delayTask(delayTarget.id, newDate);
+    }
     setDelayTarget(null);
   };
 
@@ -92,8 +112,31 @@ export function Calendar() {
   };
 
   const handleConfirmDelete = () => {
-    if (deleteTarget) removeTask(deleteTarget.id);
+    if (deleteTarget) {
+      animateListChange();
+      removeTask(deleteTarget.id);
+    }
     setDeleteTarget(null);
+  };
+
+  const handleFilterChange = (next: ListFilter) => {
+    animateListChange();
+    setFilter(next);
+  };
+
+  const handleDateChange = (next: string) => {
+    animateListChange();
+    setSelectedDate(next);
+  };
+
+  const handleCompletePress = (id: string) => {
+    animateListChange();
+    completeTask(id);
+  };
+
+  const handleSkipPress = (id: string) => {
+    animateListChange();
+    skipTask(id);
   };
 
   const markedDates = getMarkedDates(tasks, selectedDate);
@@ -102,78 +145,50 @@ export function Calendar() {
     [tasks, selectedDate, filter]
   );
 
-  const changeWeek = (direction: 'prev' | 'next') => {
-    const current = new Date(selectedDate);
-
-    current.setDate(
-      current.getDate() + (direction === 'next' ? 7 : -7)
-    );
-
-    setSelectedDate(current.toISOString().split('T')[0]);
-  };
-
-  const weekLabel = useMemo(() => {
-    const date = new Date(selectedDate);
-
-    const start = new Date(date);
-    start.setDate(date.getDate() - date.getDay());
-
-    const end = new Date(start);
-    end.setDate(start.getDate() + 6);
-
-    return `${start.toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-    })} - ${end.toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-    })}`;
-  }, [selectedDate]);
-
   return (
-    <CalendarProvider date={selectedDate} onDateChanged={(date) => setSelectedDate(date)}>
+    <CalendarProvider date={selectedDate} onDateChanged={handleDateChange}>
       {Platform.OS === 'web' ? (
         <>
-          <View style={styles.weekNav}>
-            <TouchableOpacity
-              onPress={() => changeWeek('prev')}
-              style={styles.weekArrow}
-            >
-              <Text style={styles.weekArrowText}>‹</Text>
-            </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setWebExpanded((e) => !e)}
+            style={styles.expandToggle}
+            accessibilityRole="button"
+            accessibilityLabel={webExpanded ? 'Collapse to week view' : 'Expand to month view'}
+          >
+            <Text style={styles.expandToggleText}>
+              {webExpanded ? '▲ Week view' : '▼ Month view'}
+            </Text>
+          </TouchableOpacity>
 
-            <Text style={styles.weekLabel}>{weekLabel}</Text>
-
-            <TouchableOpacity
-              onPress={() => changeWeek('next')}
-              style={styles.weekArrow}
-            >
-              <Text style={styles.weekArrowText}>›</Text>
-            </TouchableOpacity>
-          </View>
-
-          <WeekCalendar
-            current={selectedDate}
-            markedDates={markedDates}
-            theme={calendarTheme}
-            onDayPress={(day) => setSelectedDate(day.dateString)}
-          />
+          {webExpanded ? (
+            <CalendarList
+              horizontal
+              pagingEnabled
+              current={selectedDate}
+              markedDates={markedDates}
+              theme={calendarTheme}
+              onDayPress={(day) => handleDateChange(day.dateString)}
+            />
+          ) : (
+            <WeekCalendar
+              current={selectedDate}
+              markedDates={markedDates}
+              theme={calendarTheme}
+              onDayPress={(day) => handleDateChange(day.dateString)}
+            />
+          )}
         </>
       ) : (
         <ExpandableCalendar
           markingType="multi-dot"
           markedDates={markedDates}
           theme={calendarTheme}
-          pastScrollRange={12}
-          futureScrollRange={12}
-          initialNumToRender={3}
-          calendarHeight={360}
         />
       )}
 
       <View style={styles.toolbar}>
         <View style={styles.filterWrap}>
-          <SegmentedControl options={FILTER_OPTIONS} value={filter} onChange={setFilter} />
+          <SegmentedControl options={FILTER_OPTIONS} value={filter} onChange={handleFilterChange} />
         </View>
         <TouchableOpacity style={styles.addBtn} onPress={openCreate} accessibilityRole="button" accessibilityLabel="Add task">
           <Text style={styles.addBtnText}>+ Add</Text>
@@ -207,14 +222,14 @@ export function Calendar() {
 
             {item.status === 'in_progress' || item.status === 'delayed' ? (
               <View style={styles.actionsRow}>
-                <TouchableOpacity onPress={() => completeTask(item.id)} style={styles.action} hitSlop={HIT_SLOP}>
-                  <Text style={styles.complete}>✓</Text>
+                <TouchableOpacity onPress={() => handleCompletePress(item.id)} style={styles.action} hitSlop={HIT_SLOP}>
+                  <TASK_ACTION_ICONS.complete size={17} color={TASK_ACTION_COLORS.complete} strokeWidth={2.5} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => handleRequestDelay(item)} style={styles.action} hitSlop={HIT_SLOP}>
-                  <Text style={styles.delay}>↷</Text>
+                  <TASK_ACTION_ICONS.delay size={17} color={TASK_ACTION_COLORS.delay} strokeWidth={2.5} />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => skipTask(item.id)} style={styles.action} hitSlop={HIT_SLOP}>
-                  <Text style={styles.skip}>✕</Text>
+                <TouchableOpacity onPress={() => handleSkipPress(item.id)} style={styles.action} hitSlop={HIT_SLOP}>
+                  <TASK_ACTION_ICONS.skip size={17} color={TASK_ACTION_COLORS.skip} strokeWidth={2.5} />
                 </TouchableOpacity>
               </View>
             ) : (
@@ -231,6 +246,7 @@ export function Calendar() {
         selectedDate={selectedDate}
         onClose={() => setFormOpen(false)}
         onSave={(task) => {
+          animateListChange();
           if (selectedTask) {
             updateTask(task.id, task);
           } else {
@@ -245,8 +261,8 @@ export function Calendar() {
         visible={detailOpen}
         task={selectedTask}
         onClose={() => setDetailOpen(false)}
-        onComplete={(id) => completeTask(id)}
-        onSkip={(id) => skipTask(id)}
+        onComplete={handleCompletePress}
+        onSkip={handleSkipPress}
         onEdit={handleEdit}
         onRequestDelay={handleRequestDelay}
         onRequestDelete={handleRequestDelete}

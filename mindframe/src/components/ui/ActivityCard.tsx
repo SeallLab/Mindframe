@@ -1,6 +1,7 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { BreakActivity } from "../../types/breaks/BreakActivity.types";
+import { colors } from "../../styling/theme";
 
 interface ActivityCardProps {
   activity: BreakActivity;
@@ -37,10 +38,10 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#E2E2E2",
+    borderColor: colors.border,
     padding: 16,
     marginBottom: 12,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.brandSoft,
   },
   cardPressed: {
     opacity: 0.7,
@@ -54,18 +55,19 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: "600",
+    color: colors.ink,
   },
   badge: {
     fontSize: 12,
-    color: "#6B6B6B",
+    color: colors.inkFaint,
   },
   description: {
     fontSize: 14,
-    color: "#4A4A4A",
+    color: colors.inkMuted,
     marginBottom: 8,
   },
   duration: {
     fontSize: 12,
-    color: "#8A8A8A",
+    color: colors.inkFaint,
   },
 });

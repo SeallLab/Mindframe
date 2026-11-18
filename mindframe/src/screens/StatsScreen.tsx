@@ -19,7 +19,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useStatsData } from "../utils/useStatsData";
 
-import { ScreenHeader }          from "../components/ui/ScreenHeader";
+import { HeroHeader }            from "../components/ui/HeroHeader";
 import { SectionCard }          from "../components/ui/SectionCard";
 import { StatsSummaryCard }     from "../components/stats/StatsSummaryCard";
 import { UserStateGauge }       from "../components/stats/UserStateGauge";
@@ -56,108 +56,110 @@ export function StatsScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={["top"]}>
-      <ScreenHeader title="Your stats" subtitle="How the week is going" />
-
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── 1. Summary row ─────────────────────────────────────────────── */}
-        <View style={styles.summaryRow}>
-          <StatsSummaryCard
-            label="Done"
-            value={data.completedCount}
-            accentColor={OUTCOME_COLORS.completed}
-          />
-          <StatsSummaryCard
-            label="Rate"
-            value={formatPct(data.completionRate)}
-            unit="%"
-            accentColor={OUTCOME_COLORS.completed}
-          />
-          <StatsSummaryCard
-            label="Streak"
-            value={data.currentStreak}
-            unit="d"
-            accentColor={METRIC_COLORS.momentum}
-          />
-          <StatsSummaryCard
-            label="Avg time"
-            value={formatDuration(data.avgTaskDurationMinutes)}
-            accentColor={METRIC_COLORS.focusLevel}
-          />
+        {/* Header lives inside the scroll view so it scrolls away with the content.
+            It's outside the padded wrapper below so the artwork stays full-width. */}
+        <HeroHeader variant="constellation" title="Your stats" subtitle="How the week is going" />
+        <View style={styles.scrollContent}>
+          {/* ── 1. Summary row ─────────────────────────────────────────────── */}
+          <View style={styles.summaryRow}>
+            <StatsSummaryCard
+              label="Done"
+              value={data.completedCount}
+              accentColor={OUTCOME_COLORS.completed}
+            />
+            <StatsSummaryCard
+              label="Rate"
+              value={formatPct(data.completionRate)}
+              unit="%"
+              accentColor={OUTCOME_COLORS.completed}
+            />
+            <StatsSummaryCard
+              label="Streak"
+              value={data.currentStreak}
+              unit="d"
+              accentColor={METRIC_COLORS.momentum}
+            />
+            <StatsSummaryCard
+              label="Avg time"
+              value={formatDuration(data.avgTaskDurationMinutes)}
+              accentColor={METRIC_COLORS.focusLevel}
+            />
+          </View>
+
+          {/* ── 2. Mental state ─────────────────────────────────────────────── */}
+          <SectionCard
+            title="Mental state"
+            subtitle="Live snapshot of your cognitive metrics"
+          >
+            <View style={styles.gaugeGrid}>
+              <UserStateGauge
+                value={data.stressLevel}
+                label={METRIC_LABELS.stressLevel}
+                color={METRIC_COLORS.stressLevel}
+                isInverted
+              />
+              <UserStateGauge
+                value={data.energyLevel}
+                label={METRIC_LABELS.energyLevel}
+                color={METRIC_COLORS.energyLevel}
+              />
+              <UserStateGauge
+                value={data.focusLevel}
+                label={METRIC_LABELS.focusLevel}
+                color={METRIC_COLORS.focusLevel}
+              />
+              <UserStateGauge
+                value={data.momentum}
+                label={METRIC_LABELS.momentum}
+                color={METRIC_COLORS.momentum}
+              />
+              <UserStateGauge
+                value={data.confidence}
+                label={METRIC_LABELS.confidence}
+                color={METRIC_COLORS.confidence}
+              />
+            </View>
+
+            {/* Streak callout */}
+            <View style={styles.streakRow}>
+              <StreakPill label="Current streak" value={data.currentStreak} />
+              <StreakPill label="Best streak"    value={data.longestStreak} />
+            </View>
+          </SectionCard>
+
+          {/* ── 3. Task outcomes ────────────────────────────────────────────── */}
+          <SectionCard
+            title="Task outcomes"
+            subtitle={`${data.totalTasks} total task${data.totalTasks !== 1 ? "s" : ""}`}
+          >
+            <TaskCompletionChart
+              completedCount={data.completedCount}
+              delayedCount={data.delayedCount}
+              skippedCount={data.skippedCount}
+              pendingCount={data.pendingCount}
+              totalTasks={data.totalTasks}
+            />
+          </SectionCard>
+
+          {/* ── 4. This week ────────────────────────────────────────────────── */}
+          <SectionCard title="This week" subtitle="Completed tasks per day">
+            <ProductivityTimeline days={data.last7Days} />
+          </SectionCard>
+
+          {/* ── 5. By priority ──────────────────────────────────────────────── */}
+          <SectionCard
+            title="By priority"
+            subtitle="Are you avoiding your hardest tasks?"
+          >
+            <PriorityBreakdown data={data.byPriority} />
+          </SectionCard>
+
+          <View style={styles.bottomPad} />
         </View>
-
-        {/* ── 2. Mental state ─────────────────────────────────────────────── */}
-        <SectionCard
-          title="Mental state"
-          subtitle="Live snapshot of your cognitive metrics"
-        >
-          <View style={styles.gaugeGrid}>
-            <UserStateGauge
-              value={data.stressLevel}
-              label={METRIC_LABELS.stressLevel}
-              color={METRIC_COLORS.stressLevel}
-              isInverted
-            />
-            <UserStateGauge
-              value={data.energyLevel}
-              label={METRIC_LABELS.energyLevel}
-              color={METRIC_COLORS.energyLevel}
-            />
-            <UserStateGauge
-              value={data.focusLevel}
-              label={METRIC_LABELS.focusLevel}
-              color={METRIC_COLORS.focusLevel}
-            />
-            <UserStateGauge
-              value={data.momentum}
-              label={METRIC_LABELS.momentum}
-              color={METRIC_COLORS.momentum}
-            />
-            <UserStateGauge
-              value={data.confidence}
-              label={METRIC_LABELS.confidence}
-              color={METRIC_COLORS.confidence}
-            />
-          </View>
-
-          {/* Streak callout */}
-          <View style={styles.streakRow}>
-            <StreakPill label="Current streak" value={data.currentStreak} />
-            <StreakPill label="Best streak"    value={data.longestStreak} />
-          </View>
-        </SectionCard>
-
-        {/* ── 3. Task outcomes ────────────────────────────────────────────── */}
-        <SectionCard
-          title="Task outcomes"
-          subtitle={`${data.totalTasks} total task${data.totalTasks !== 1 ? "s" : ""}`}
-        >
-          <TaskCompletionChart
-            completedCount={data.completedCount}
-            delayedCount={data.delayedCount}
-            skippedCount={data.skippedCount}
-            pendingCount={data.pendingCount}
-            totalTasks={data.totalTasks}
-          />
-        </SectionCard>
-
-        {/* ── 4. This week ────────────────────────────────────────────────── */}
-        <SectionCard title="This week" subtitle="Completed tasks per day">
-          <ProductivityTimeline days={data.last7Days} />
-        </SectionCard>
-
-        {/* ── 5. By priority ──────────────────────────────────────────────── */}
-        <SectionCard
-          title="By priority"
-          subtitle="Are you avoiding your hardest tasks?"
-        >
-          <PriorityBreakdown data={data.byPriority} />
-        </SectionCard>
-
-        <View style={styles.bottomPad} />
       </ScrollView>
     </SafeAreaView>
   );

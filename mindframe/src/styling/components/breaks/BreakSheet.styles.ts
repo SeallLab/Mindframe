@@ -10,6 +10,7 @@ export const styles = StyleSheet.create({
   handleWrap: {
     alignItems: "center",
     paddingTop: spacing.sm,
+    paddingBottom: spacing.xs,
   },
   handle: {
     width: 40,
@@ -18,32 +19,11 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.borderStrong,
   },
 
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.md,
-  },
-  headerText: {
-    flex: 1,
-    gap: 2,
-    paddingRight: spacing.md,
-  },
-  title: {
-    ...type.display,
-    fontSize: 26,
-    color: colors.ink,
-  },
-  subtitle: {
-    ...type.body,
-    fontSize: 14,
-    color: colors.inkFaint,
-  },
+  // Title/subtitle/close now live in HeroHeader.
 
   chipScroll: {
     flexGrow: 0,
+    marginTop: spacing.md,
   },
   chipRow: {
     paddingHorizontal: spacing.base,
@@ -58,9 +38,6 @@ export const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: radius.pill,
     borderWidth: 1.5,
-  },
-  chipGlyph: {
-    fontSize: 13,
   },
   chipLabel: {
     ...type.bodyStrong,

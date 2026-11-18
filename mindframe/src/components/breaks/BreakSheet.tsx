@@ -1,14 +1,17 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Dimensions, PanResponder, ScrollView, Text, View } from "react-native";
+import { Animated, PanResponder, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Sparkles } from "lucide-react-native";
 import { breakActivities, BreakActivity } from "../../types/breaks/BreakActivity.types";
 import { BreakActivityCategory } from "../../types/AppEvent.types";
 import { useUserStateStore } from "../../store/useUserStateStore";
 import { ActivityCard } from "../ui/ActivityCard";
 import { IconButton } from "../ui/IconButton";
+import { GradientFill } from "../ui/GradientFill";
+import { HeroHeader } from "../ui/HeroHeader";
 import { EmptyState } from "../ui/EmptyState";
 import { ActiveActivitySession } from "./ActiveActivitySession";
-import { CATEGORY_COLORS, CATEGORY_GLYPHS, CATEGORY_LABELS, CATEGORY_SOFT_COLORS } from "../../styling/breaksTheme";
+import { CATEGORY_COLORS, CATEGORY_ICONS, CATEGORY_LABELS } from "../../styling/breaksTheme";
 import { colors } from "../../styling/theme";
 import { styles } from "../../styling/components/breaks/BreakSheet.styles";
 
@@ -16,7 +19,12 @@ type CategoryFilter = "all" | BreakActivityCategory;
 
 const ALL_CATEGORIES: BreakActivityCategory[] = ["breathing", "movement", "mindfulness", "social", "rest"];
 
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+// How long the sheet's own slide-down takes (RN's default Modal slide
+// animation). Resetting `active` back to null is delayed by this long after
+// closing so the list view is never rendered while the sheet is still
+// visible mid-close — see completeActivity below.
+const SHEET_CLOSE_MS = 320;
+const CROSSFADE_MS = 220;
 
 interface BreakSheetProps {
   onClose: () => void;
@@ -33,20 +41,23 @@ function CategoryChip({
 }) {
   const isAll = filter === "all";
   const accent = isAll ? colors.brand : CATEGORY_COLORS[filter];
-  const soft = isAll ? colors.brandSoft : CATEGORY_SOFT_COLORS[filter];
-  const glyph = isAll ? "✳" : CATEGORY_GLYPHS[filter];
+  const Icon = isAll ? Sparkles : CATEGORY_ICONS[filter];
   const label = isAll ? "All" : CATEGORY_LABELS[filter];
+  const iconColor = isActive ? colors.inkOnBrand : accent;
 
+  // Active = solid accent fill. Inactive = transparent with just a colored
+  // hairline, so the category stays identifiable without every chip in the
+  // row reading as an equally-weighted filled block.
   return (
     <View
       onTouchEnd={onPress}
       style={[
         styles.chip,
-        { backgroundColor: isActive ? accent : soft, borderColor: isActive ? accent : "transparent" },
+        { backgroundColor: isActive ? accent : "transparent", borderColor: accent },
       ]}
     >
-      <Text style={[styles.chipGlyph, { color: isActive ? colors.inkOnBrand : accent }]}>{glyph}</Text>
-      <Text style={[styles.chipLabel, { color: isActive ? colors.inkOnBrand : accent }]}>{label}</Text>
+      <Icon size={14} color={iconColor} />
+      <Text style={[styles.chipLabel, { color: iconColor }]}>{label}</Text>
     </View>
   );
 }
@@ -57,16 +68,21 @@ export function BreakSheet({ onClose }: BreakSheetProps) {
   const [active, setActive] = useState<BreakActivity | null>(null);
   const [filter, setFilter] = useState<CategoryFilter>("all");
 
-  const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-  const DISMISS_THRESHOLD = 120;
-
+  // Cross-fades between the list and the active session instead of hard-
+  // swapping them, so starting/finishing an activity reads as one
+  // transition rather than a jump cut.
+  const contentOpacity = useRef(new Animated.Value(1)).current;
   useEffect(() => {
-    Animated.spring(translateY, {
-      toValue: 0,
+    contentOpacity.setValue(0);
+    Animated.timing(contentOpacity, {
+      toValue: 1,
+      duration: CROSSFADE_MS,
       useNativeDriver: true,
-      bounciness: 4,
     }).start();
-  }, []);
+  }, [active]);
+
+  const translateY = useRef(new Animated.Value(0)).current;
+  const DISMISS_THRESHOLD = 120;
 
   const panResponder = useRef(
     PanResponder.create({
@@ -78,7 +94,7 @@ export function BreakSheet({ onClose }: BreakSheetProps) {
       onPanResponderRelease: (_, gesture) => {
         if (gesture.dy > DISMISS_THRESHOLD) {
           Animated.timing(translateY, {
-            toValue: SCREEN_HEIGHT,
+            toValue: 800,
             duration: 200,
             useNativeDriver: true,
           }).start(() => {
@@ -111,8 +127,14 @@ export function BreakSheet({ onClose }: BreakSheetProps) {
       durationMinutes: actualMinutes,
       activityType: active.category,
     });
-    setActive(null);
+
+    // Close first — the sheet starts sliding down while ActiveActivitySession
+    // is still showing its "Nice work" hold state (active hasn't been reset
+    // yet). Resetting `active` immediately here would swap the visible
+    // content back to the category list for a frame before the close
+    // animation even starts.
     onClose();
+    setTimeout(() => setActive(null), SHEET_CLOSE_MS);
   }
 
   function cancelActivity() {
@@ -127,58 +149,62 @@ export function BreakSheet({ onClose }: BreakSheetProps) {
         { transform: [{ translateY }] },
       ]}
     >
+      <GradientFill name="sheet" />
+
       {/* Drag handle — swipe down to dismiss */}
       <View style={styles.handleWrap} {...panResponder.panHandlers}>
         <View style={styles.handle} />
       </View>
 
-      <View style={styles.header}>
-        <View style={styles.headerText}>
-          <Text style={styles.title}>Take a break</Text>
-          <Text style={styles.subtitle}>
-            {active ? active.title : "Pick something that fits how you're feeling right now."}
-          </Text>
-        </View>
-        <IconButton glyph="✕" label="Close" onPress={onClose} />
-      </View>
+      {/* Dawn scene: this is the "restore" half of the app, so it gets the
+          warm sunrise rather than the night sky used for state/stats. */}
+      <HeroHeader
+        variant="dawn"
+        height={132}
+        title="Take a break"
+        subtitle={active ? active.title : "Pick something that fits how you're feeling right now."}
+        right={<IconButton glyph="✕" label="Close" onPress={onClose} />}
+      />
 
-      {active ? (
-        <View style={styles.sessionContainer}>
-          <ActiveActivitySession
-            activity={active}
-            onComplete={completeActivity}
-            onCancel={cancelActivity}
-          />
-        </View>
-      ) : (
-        <>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chipRow}
-            style={styles.chipScroll}
-          >
-            <CategoryChip filter="all" isActive={filter === "all"} onPress={() => setFilter("all")} />
-            {ALL_CATEGORIES.map((cat) => (
-              <CategoryChip key={cat} filter={cat} isActive={filter === cat} onPress={() => setFilter(cat)} />
-            ))}
-          </ScrollView>
+      <Animated.View style={{ flex: 1, opacity: contentOpacity }}>
+        {active ? (
+          <View style={styles.sessionContainer}>
+            <ActiveActivitySession
+              activity={active}
+              onComplete={completeActivity}
+              onCancel={cancelActivity}
+            />
+          </View>
+        ) : (
+          <>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chipRow}
+              style={styles.chipScroll}
+            >
+              <CategoryChip filter="all" isActive={filter === "all"} onPress={() => setFilter("all")} />
+              {ALL_CATEGORIES.map((cat) => (
+                <CategoryChip key={cat} filter={cat} isActive={filter === cat} onPress={() => setFilter(cat)} />
+              ))}
+            </ScrollView>
 
-          <ScrollView
-            style={styles.list}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {filteredActivities.length === 0 ? (
-              <EmptyState glyph="◌" title="Nothing here" subtitle="No activities in this category yet." />
-            ) : (
-              filteredActivities.map((activity) => (
-                <ActivityCard key={activity.id} activity={activity} onPress={startActivity} />
-              ))
-            )}
-          </ScrollView>
-        </>
-      )}
+            <ScrollView
+              style={styles.list}
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {filteredActivities.length === 0 ? (
+                <EmptyState glyph="◌" title="Nothing here" subtitle="No activities in this category yet." />
+              ) : (
+                filteredActivities.map((activity) => (
+                  <ActivityCard key={activity.id} activity={activity} onPress={startActivity} />
+                ))
+              )}
+            </ScrollView>
+          </>
+        )}
+      </Animated.View>
     </Animated.View>
   );
 }

@@ -37,10 +37,11 @@ export const styles = StyleSheet.create({
   field: {
     marginBottom: spacing.xl,
   },
+  // No textTransform: 'uppercase' — see TaskDetailModal.styles.ts sectionLabel
+  // for the same change and rationale.
   fieldLabel: {
     ...type.caption,
     color: colors.inkFaint,
-    textTransform: 'uppercase',
     marginBottom: spacing.sm,
   },
   fieldError: {
@@ -127,10 +128,6 @@ export const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     color: colors.ink,
-  },
-  subtaskRemove: {
-    fontSize: 12,
-    color: colors.inkFaint,
   },
   subtaskInputRow: {
     flexDirection: 'row',

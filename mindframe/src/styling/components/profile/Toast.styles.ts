@@ -22,5 +22,5 @@ export const styles = StyleSheet.create({
     color: colors.surface,
   },
   textSaving: { color: colors.inkFaint },
-  textSaved: { color: "#7CE0BF" },
+  textSaved: { color: colors.positive },
 });

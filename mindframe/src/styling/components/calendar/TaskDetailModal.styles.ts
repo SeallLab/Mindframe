@@ -62,10 +62,10 @@ export const styles = StyleSheet.create({
     borderColor: colors.surfaceAlt,
     gap: 10,
   },
-  infoIcon: {
-    fontSize: 15,
+  // Holds the real icon component (was a fixed-width Text glyph before).
+  infoIconWrap: {
     width: 22,
-    textAlign: 'center',
+    alignItems: 'center',
   },
   infoLabel: {
     ...type.body,
@@ -83,10 +83,12 @@ export const styles = StyleSheet.create({
   section: {
     marginBottom: spacing.xl,
   },
+  // No textTransform: 'uppercase' — sentence case reads as a genuine label
+  // rather than the generic tracked-out ALL-CAPS eyebrow (design plan).
+  // caption's own letterSpacing/weight still keep it distinct from body text.
   sectionLabel: {
     ...type.caption,
     color: colors.inkFaint,
-    textTransform: 'uppercase',
     marginBottom: spacing.md,
   },
   subtaskRow: {
@@ -125,9 +127,6 @@ export const styles = StyleSheet.create({
   },
   actionBtnDisabled: {
     opacity: 0.45,
-  },
-  actionIcon: {
-    fontSize: 20,
   },
   actionLabel: {
     ...type.micro,

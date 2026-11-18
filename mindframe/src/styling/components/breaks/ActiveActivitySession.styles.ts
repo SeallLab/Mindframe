@@ -16,16 +16,20 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: spacing.xl,
   },
-  dialCenter: {
+  // Absolute so it adds no layout; centered by dialWrap's alignItems/justifyContent.
+  halo: {
     position: "absolute",
-    alignItems: "center",
-    justifyContent: "center",
   },
+  // Tabular figures keep the digits from shifting width as they tick down.
   timer: {
+    ...type.numeral,
     fontSize: 34,
-    fontWeight: "300",
     color: colors.ink,
-    fontVariant: ["tabular-nums"],
+  },
+  completeLabel: {
+    ...type.subtitle,
+    color: colors.ink,
+    marginBottom: spacing.xl,
   },
   steps: {
     marginBottom: spacing.xl,

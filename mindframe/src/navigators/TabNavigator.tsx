@@ -5,6 +5,7 @@ import { HomeScreen }    from "../screens/HomeScreen";
 import { StatsScreen }   from "../screens/StatsScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
 import { ROUTES }        from "./routes";
+import { GradientFill } from "../components/ui/GradientFill";
 import { colors } from "../styling/theme";
 import { tabBarStyle } from "../styling/TabNavigator.styles";
 
@@ -31,6 +32,9 @@ export function TabNavigator() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle,
+        // Fades from surface into the page background, so the bar reads as part
+        // of the scene instead of a hard strip along the bottom.
+        tabBarBackground: () => <GradientFill name="tabBar" />,
         tabBarActiveTintColor: colors.brand,
         tabBarInactiveTintColor: colors.inkFaint,
         tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },

@@ -7,45 +7,15 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
+import { Clock, Timer, Calendar as CalendarIcon } from 'lucide-react-native';
+import type { LucideIcon } from 'lucide-react-native';
 import { ScheduledTask } from '../../types/Task.types';
 import { TaskStatus } from '../../types/calendar/Calendar.types';
+import { formatDateTime, formatTimeRange, formatDuration } from '../../utils/calendarUtils';
+import { TASK_ACTION_ICONS, TASK_ACTION_COLORS } from '../ui/taskActionIcons';
 import { Badge } from '../ui/Badge';
 import { colors } from '../../styling/theme';
 import { styles } from '../../styling/components/calendar/TaskDetailModal.styles';
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatDateTime(dateTime: string): string {
-  const d = new Date(dateTime);
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const month = months[d.getMonth()];
-  const day   = d.getDate();
-  const h     = d.getHours();
-  const m     = String(d.getMinutes()).padStart(2, '0');
-  const suffix = h >= 12 ? 'PM' : 'AM';
-  const hour   = h % 12 === 0 ? 12 : h % 12;
-  return `${month} ${day} · ${hour}:${m} ${suffix}`;
-}
-
-function formatTimeRange(start: string, end: string): string {
-  const fmt = (dt: string) => {
-    const d = new Date(dt);
-    const h = d.getHours();
-    const m = String(d.getMinutes()).padStart(2, '0');
-    const suffix = h >= 12 ? 'PM' : 'AM';
-    const hour   = h % 12 === 0 ? 12 : h % 12;
-    return `${hour}:${m} ${suffix}`;
-  };
-  return `${fmt(start)} – ${fmt(end)}`;
-}
-
-function formatDuration(start: string, end: string): string {
-  const mins = (new Date(end).getTime() - new Date(start).getTime()) / 60000;
-  if (mins < 60) return `${Math.round(mins)}m`;
-  const h = Math.floor(mins / 60);
-  const m = Math.round(mins % 60);
-  return m > 0 ? `${h}h ${m}m` : `${h}h`;
-}
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
@@ -67,25 +37,22 @@ const PRIORITY_COLOR: Record<string, string> = {
 
 interface ActionButtonProps {
   label: string;
-  icon: string;
+  Icon: LucideIcon;
   color: string;
   onPress: () => void;
   disabled?: boolean;
 }
 
-function ActionButton({ label, icon, color, onPress, disabled }: ActionButtonProps) {
+function ActionButton({ label, Icon, color, onPress, disabled }: ActionButtonProps) {
+  const tint = disabled ? colors.inkFaint : color;
   return (
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled}
       style={[styles.actionBtn, disabled && styles.actionBtnDisabled]}
     >
-      <Text style={[styles.actionIcon, { color: disabled ? colors.inkFaint : color }]}>
-        {icon}
-      </Text>
-      <Text style={[styles.actionLabel, { color: disabled ? colors.inkFaint : color }]}>
-        {label}
-      </Text>
+      <Icon size={20} color={tint} />
+      <Text style={[styles.actionLabel, { color: tint }]}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -172,9 +139,9 @@ export function TaskDetailModal({
 
           {/* ── Time info ── */}
           <View style={styles.infoBlock}>
-            <InfoRow icon="🕐" label="Time" value={formatTimeRange(task.startDateTime, task.endDateTime)} />
-            <InfoRow icon="⏱" label="Duration" value={formatDuration(task.startDateTime, task.endDateTime)} />
-            <InfoRow icon="📅" label="Date" value={formatDateTime(task.startDateTime).split(' · ')[0]} />
+            <InfoRow Icon={Clock} label="Time" value={formatTimeRange(task.startDateTime, task.endDateTime)} />
+            <InfoRow Icon={Timer} label="Duration" value={formatDuration(task.startDateTime, task.endDateTime)} />
+            <InfoRow Icon={CalendarIcon} label="Date" value={formatDateTime(task.startDateTime).split(' · ')[0]} />
           </View>
 
           {/* ── Subtasks ── */}
@@ -196,22 +163,22 @@ export function TaskDetailModal({
             <View style={styles.actionRow}>
               <ActionButton
                 label="Complete"
-                icon="✓"
-                color={colors.energy}
+                Icon={TASK_ACTION_ICONS.complete}
+                color={TASK_ACTION_COLORS.complete}
                 onPress={() => handleAction(() => onComplete(task.id))}
                 disabled={!isActionable}
               />
               <ActionButton
                 label="Delay"
-                icon="↷"
-                color={colors.momentum}
+                Icon={TASK_ACTION_ICONS.delay}
+                color={TASK_ACTION_COLORS.delay}
                 onPress={() => onRequestDelay(task)}
                 disabled={!isActionable}
               />
               <ActionButton
                 label="Skip"
-                icon="✕"
-                color={colors.stress}
+                Icon={TASK_ACTION_ICONS.skip}
+                color={TASK_ACTION_COLORS.skip}
                 onPress={() => handleAction(() => onSkip(task.id))}
                 disabled={!isActionable}
               />
@@ -237,10 +204,12 @@ export function TaskDetailModal({
 
 // ─── Info row ─────────────────────────────────────────────────────────────────
 
-function InfoRow({ icon, label, value }: { icon: string; label: string; value: string }) {
+function InfoRow({ Icon, label, value }: { Icon: LucideIcon; label: string; value: string }) {
   return (
     <View style={styles.infoRow}>
-      <Text style={styles.infoIcon}>{icon}</Text>
+      <View style={styles.infoIconWrap}>
+        <Icon size={15} color={colors.inkFaint} />
+      </View>
       <Text style={styles.infoLabel}>{label}</Text>
       <Text style={styles.infoValue}>{value}</Text>
     </View>

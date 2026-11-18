@@ -21,6 +21,16 @@ export function getWeekDays(date: Date): Date[] {
   });
 }
 
+function taskOccursOnDay(task: ScheduledTask, date: Date): boolean {
+  const taskStart = new Date(task.startDateTime);
+  const taskEnd = new Date(task.endDateTime);
+
+  const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
+  const dayEnd   = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+
+  return taskStart <= dayEnd && taskEnd >= dayStart;
+}
+
 export function getTasksForDay(tasks: ScheduledTask[], date: string) {
   return tasks.filter(
     (t) => t.startDateTime.split('T')[0] === date
@@ -91,6 +101,9 @@ const MONTH_NAMES = [
   "January","February","March","April","May","June",
   "July","August","September","October","November","December",
 ] as const;
+const MONTH_NAMES_SHORT = [
+  "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec",
+] as const;
 
 export function formatMonthYear(year: number, month: number): string {
   return `${MONTH_NAMES[month]} ${year}`;
@@ -153,6 +166,30 @@ export function formatTime(dateTime: string): string {
   const hour   = h % 12 === 0 ? 12 : h % 12;
   const min    = m.toString().padStart(2, "0");
   return `${hour}:${min} ${suffix}`;
+}
+
+/**
+ * "Jun 5 · 3:30 PM" — the previous callers (TaskDetailModal) each defined
+ * their own version of this; centralized here so date/time formatting has
+ * one source of truth, same as the rest of this file.
+ */
+export function formatDateTime(dateTime: string): string {
+  const d = new Date(dateTime);
+  return `${MONTH_NAMES_SHORT[d.getMonth()]} ${d.getDate()} · ${formatTime(dateTime)}`;
+}
+
+/** "3:30 PM – 4:15 PM" */
+export function formatTimeRange(start: string, end: string): string {
+  return `${formatTime(start)} – ${formatTime(end)}`;
+}
+
+/** "45m" or "1h 15m" */
+export function formatDuration(start: string, end: string): string {
+  const mins = (new Date(end).getTime() - new Date(start).getTime()) / 60000;
+  if (mins < 60) return `${Math.round(mins)}m`;
+  const h = Math.floor(mins / 60);
+  const m = Math.round(mins % 60);
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
 export function formatHourLabel(hour: number): string {

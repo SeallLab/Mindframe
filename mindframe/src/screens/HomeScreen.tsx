@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, Modal } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { Animated, View, Text, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserStateStore } from "../store/useUserStateStore";
 import { useBreakPromptStore } from "../store/useBreakPromptStore";
@@ -7,16 +7,17 @@ import { Recommendation, RecommendationCategory } from "../types/recommendations
 import { Calendar } from "../components/calendar/Calendar";
 import { BreakMiniBar, getBreakEmphasis } from "../components/breaks/BreakMiniBar";
 import { BreakSheet } from "../components/breaks/BreakSheet";
-import { ScreenHeader } from "../components/ui/ScreenHeader";
-import { semantic } from "../styling/theme";
+import { HeroHeader } from "../components/ui/HeroHeader";
+import { GradientFill } from "../components/ui/GradientFill";
+import { alpha, colors, radius, semantic } from "../styling/theme";
 import { styles, banner } from "../styling/screens/HomeScreen.styles";
 
-const CATEGORY_STYLE: Record<RecommendationCategory, { bg: string; accent: string; label: string }> = {
-  recovery:   { bg: semantic.recoverySoft, accent: semantic.recovery, label: "Recovery" },
-  focus:      { bg: semantic.focusSoft, accent: semantic.focus, label: "Focus" },
-  motivation: { bg: semantic.motivationSoft, accent: semantic.motivation, label: "Motivation" },
-  warning:    { bg: semantic.warningSoft, accent: semantic.warning, label: "Warning" },
-  celebrate:  { bg: semantic.celebrateSoft, accent: semantic.celebrate, label: "Nice work" },
+const CATEGORY_STYLE: Record<RecommendationCategory, { accent: string; label: string }> = {
+  recovery:   { accent: semantic.recovery, label: "Recovery" },
+  focus:      { accent: semantic.focus, label: "Focus" },
+  motivation: { accent: semantic.motivation, label: "Motivation" },
+  warning:    { accent: semantic.warning, label: "Warning" },
+  celebrate:  { accent: semantic.celebrate, label: "Nice work" },
 };
 
 // ─── Recommendation banner ─────────────────────────────────────────────────
@@ -24,7 +25,16 @@ const CATEGORY_STYLE: Record<RecommendationCategory, { bg: string; accent: strin
 function RecommendationBanner({ rec }: { rec: Recommendation }) {
   const s = CATEGORY_STYLE[rec.category];
   return (
-    <View style={[banner.wrap, { backgroundColor: s.bg }]}>
+    // Radius/overflow are set here (not left to banner.wrap) because the
+    // gradient wash is an absolutely-positioned child that has to be
+    // clipped to the card's shape.
+    <View
+      style={[
+        banner.wrap,
+        { backgroundColor: colors.surface, borderRadius: radius.lg, overflow: "hidden" },
+      ]}
+    >
+      <GradientFill colors={[alpha(s.accent, 0.3), alpha(s.accent, 0.04)]} direction="diagonal" />
       <View style={[banner.strip, { backgroundColor: s.accent }]} />
       <View style={banner.body}>
         <View style={banner.row}>
@@ -36,7 +46,7 @@ function RecommendationBanner({ rec }: { rec: Recommendation }) {
           )}
         </View>
         <Text style={[banner.headline, { color: s.accent }]}>{rec.headline}</Text>
-        <Text style={banner.detail} numberOfLines={3}>{rec.detail}</Text>
+        <Text style={banner.detail}>{rec.detail}</Text>
       </View>
     </View>
   );
@@ -64,10 +74,36 @@ export function HomeScreen() {
   const emphasis = getBreakEmphasis(state);
   const { weekday, date } = formatWeekdayDate();
 
+  // Cross-fade when the top recommendation changes (keyed on id, not object
+  // identity — the engine can hand back an equal-but-new object without it
+  // being a different suggestion).
+  const bannerOpacity = useRef(new Animated.Value(topRec ? 1 : 0)).current;
+  const lastRecId = useRef<string | null>(topRec?.id ?? null);
+
+  useEffect(() => {
+    const nextId = topRec?.id ?? null;
+    if (nextId === lastRecId.current) return;
+    lastRecId.current = nextId;
+
+    if (!topRec) return; // banner unmounts via the conditional below
+
+    bannerOpacity.setValue(0);
+    Animated.timing(bannerOpacity, {
+      toValue: 1,
+      duration: 260,
+      useNativeDriver: true,
+    }).start();
+  }, [topRec?.id]);
+
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <ScreenHeader title={weekday} subtitle={date} />
-      {topRec && <RecommendationBanner rec={topRec} />}
+      <HeroHeader variant="dusk" title={weekday} subtitle={date} />
+
+      {topRec && (
+        <Animated.View style={{ opacity: bannerOpacity }}>
+          <RecommendationBanner rec={topRec} />
+        </Animated.View>
+      )}
 
       <View style={styles.calendar}>
         <Calendar />
@@ -77,7 +113,7 @@ export function HomeScreen() {
       <BreakMiniBar emphasis={emphasis} onPress={openModal} />
 
       {/* Expanded break sheet — takes over the full screen when opened */}
-      <Modal visible={modalVisible} transparent animationType="none" onRequestClose={closeModal}>
+      <Modal visible={modalVisible} animationType="slide" onRequestClose={closeModal}>
         <BreakSheet onClose={closeModal} />
       </Modal>
     </SafeAreaView>

@@ -62,12 +62,15 @@ const migrations: ((db: SQLiteDatabase) => Promise<void>)[] = [
     `);
   },
 
-  // ── v2: example of how to add a column in a future release ──────────────
-  // async (db) => {
-  //   await db.execAsync(`
-  //     ALTER TABLE user_preferences ADD COLUMN some_new_field TEXT;
-  //   `);
-  // },
+  // ── v2: first-run onboarding flag ────────────────────────────────────────
+  // DEFAULT 0 means every existing install reads as "hasn't onboarded" and
+  // will see the flow once after updating — intended: it explains features
+  // they may never have had explained.
+  async (db) => {
+    await db.execAsync(`
+      ALTER TABLE user_preferences ADD COLUMN has_onboarded INTEGER NOT NULL DEFAULT 0;
+    `);
+  },
 ];
 
 /**

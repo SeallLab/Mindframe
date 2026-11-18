@@ -1,14 +1,10 @@
-// ─────────────────────────────────────────────────────────────────────────────
 // src/styling/statsTheme.ts
 //
-// Semantic color + label lookup tables for the Stats screen. Kept separate
-// from theme.ts because these map *domain keys* (stressLevel, completed,
-// high…) to tokens, rather than defining the tokens themselves.
-// ─────────────────────────────────────────────────────────────────────────────
+// Color/label tokens for the stats screen. Referenced by UserStateGauge,
+// TaskCompletionChart, ProductivityTimeline, PriorityBreakdown,
+// StatsSummaryCard, StatsScreen.
 
-import { colors } from "./theme";
-
-export const TIMELINE_DAYS = 7;
+import { colors } from './theme';
 
 export const METRIC_COLORS = {
   stressLevel: colors.stress,
@@ -19,25 +15,25 @@ export const METRIC_COLORS = {
 } as const;
 
 export const METRIC_LABELS = {
-  stressLevel: "Stress",
-  energyLevel: "Energy",
-  focusLevel: "Focus",
-  momentum: "Momentum",
-  confidence: "Confidence",
+  stressLevel: 'Stress',
+  energyLevel: 'Energy',
+  focusLevel: 'Focus',
+  momentum: 'Momentum',
+  confidence: 'Confidence',
 } as const;
 
 export const OUTCOME_COLORS = {
   completed: colors.energy,
   delayed: colors.momentum,
   skipped: colors.stress,
-  pending: colors.borderStrong,
+  pending: colors.border,
 } as const;
 
 export const OUTCOME_LABELS = {
-  completed: "Completed",
-  delayed: "Delayed",
-  skipped: "Skipped",
-  pending: "Pending",
+  completed: 'Completed',
+  delayed: 'Delayed',
+  skipped: 'Skipped',
+  pending: 'Pending',
 } as const;
 
 export const PRIORITY_COLORS = {
@@ -47,7 +43,9 @@ export const PRIORITY_COLORS = {
 } as const;
 
 export const PRIORITY_LABELS = {
-  high: "High",
-  medium: "Medium",
-  low: "Low",
+  high: 'High',
+  medium: 'Medium',
+  low: 'Low',
 } as const;
+
+export const TIMELINE_DAYS = 7;
