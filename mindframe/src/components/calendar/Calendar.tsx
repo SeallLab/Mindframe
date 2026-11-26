@@ -1,14 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList, Platform, LayoutAnimation, UIManager } from 'react-native';
-import {
-  CalendarProvider,
-  ExpandableCalendar,
-  WeekCalendar,
-  CalendarList,
-} from 'react-native-calendars';
+import { CalendarProvider } from 'react-native-calendars';
 import { useTaskStore } from '../../store/useTaskStore';
 import { getTasksForDay } from '../../utils/calendarUtils';
 import { ScheduledTask } from '../../types/Task.types';
+import { MarkedDatesMap } from '../../types/calendar/Calendar.types';
+import { CalendarPicker } from './CalendarPicker';
 import { TaskFormModal } from './TaskFormModal';
 import { TaskDetailModal } from './TaskDetailModal';
 import { DelayTaskDialog } from './DelayTaskDialog';
@@ -63,7 +60,6 @@ export function Calendar() {
   const [delayTarget, setDelayTarget] = useState<ScheduledTask | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ScheduledTask | null>(null);
   const [filter, setFilter] = useState<ListFilter>('all');
-  const [webExpanded, setWebExpanded] = useState(false);
 
   const {
     tasks,
@@ -147,44 +143,7 @@ export function Calendar() {
 
   return (
     <CalendarProvider date={selectedDate} onDateChanged={handleDateChange}>
-      {Platform.OS === 'web' ? (
-        <>
-          <TouchableOpacity
-            onPress={() => setWebExpanded((e) => !e)}
-            style={styles.expandToggle}
-            accessibilityRole="button"
-            accessibilityLabel={webExpanded ? 'Collapse to week view' : 'Expand to month view'}
-          >
-            <Text style={styles.expandToggleText}>
-              {webExpanded ? '▲ Week view' : '▼ Month view'}
-            </Text>
-          </TouchableOpacity>
-
-          {webExpanded ? (
-            <CalendarList
-              horizontal
-              pagingEnabled
-              current={selectedDate}
-              markedDates={markedDates}
-              theme={calendarTheme}
-              onDayPress={(day) => handleDateChange(day.dateString)}
-            />
-          ) : (
-            <WeekCalendar
-              current={selectedDate}
-              markedDates={markedDates}
-              theme={calendarTheme}
-              onDayPress={(day) => handleDateChange(day.dateString)}
-            />
-          )}
-        </>
-      ) : (
-        <ExpandableCalendar
-          markingType="multi-dot"
-          markedDates={markedDates}
-          theme={calendarTheme}
-        />
-      )}
+      <CalendarPicker markedDates={markedDates} onDayPress={handleDateChange} />
 
       <View style={styles.toolbar}>
         <View style={styles.filterWrap}>
@@ -292,8 +251,8 @@ export function Calendar() {
 
 const HIT_SLOP = { top: 8, bottom: 8, left: 8, right: 8 };
 
-function getMarkedDates(tasks: ScheduledTask[], selectedDate: string): Record<string, any> {
-  const marks: Record<string, any> = {};
+function getMarkedDates(tasks: ScheduledTask[], selectedDate: string): MarkedDatesMap {
+  const marks: MarkedDatesMap = {};
 
   tasks.forEach((task) => {
     const date = task.startDateTime.split('T')[0];

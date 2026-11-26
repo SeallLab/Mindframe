@@ -11,6 +11,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { X } from 'lucide-react-native';
+import { AppFrame } from '../AppFrame';
 import { ScheduledTask } from '../../types/Task.types';
 import { TaskPriority, TaskStatus } from '../../types/calendar/Calendar.types';
 import { dateStringToLocalDate, dateToTimeString, formatDateString, timeStringToLocalDate } from '../../utils/calendarUtils';
@@ -191,146 +192,148 @@ export function TaskFormModal({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.safe}>
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-          {/* ── Header ── */}
-          <View style={styles.header}>
-            <TouchableOpacity onPress={onClose} hitSlop={HIT_SLOP}>
-              <Text style={styles.cancel}>Cancel</Text>
-            </TouchableOpacity>
-            <Text style={styles.title}>{isEdit ? 'Edit Task' : 'New Task'}</Text>
-            <TouchableOpacity onPress={handleSave} hitSlop={HIT_SLOP}>
-              <Text style={styles.save}>Save</Text>
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView
-            contentContainerStyle={styles.body}
-            keyboardShouldPersistTaps="handled"
+      <AppFrame>
+        <SafeAreaView style={styles.safe}>
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           >
-            {/* ── Title ── */}
-            <Field label="Title" error={errors.title}>
-              <TextInput
-                style={[styles.input, errors.title && styles.inputError]}
-                value={form.title}
-                onChangeText={(v) => set('title', v)}
-                placeholder="What needs to get done?"
-                placeholderTextColor={colors.inkFaint}
-                returnKeyType="next"
-                autoFocus={!isEdit}
-              />
-            </Field>
-
-            {/* ── Date ── */}
-            <DateTimeField
-              label="Date"
-              mode="date"
-              value={dateStringToLocalDate(form.date)}
-              onChange={(d) => set('date', formatDateString(d))}
-            />
-
-            {/* ── Time row ── */}
-            <View style={styles.row}>
-              <View style={{ flex: 1 }}>
-                <DateTimeField
-                  label="Start"
-                  mode="time"
-                  value={timeStringToLocalDate(form.date, form.startTime)}
-                  onChange={(d) => set('startTime', dateToTimeString(d))}
-                />
-              </View>
-              <Text style={styles.timeSep}>–</Text>
-              <View style={{ flex: 1 }}>
-                <DateTimeField
-                  label="End"
-                  mode="time"
-                  value={timeStringToLocalDate(form.date, form.endTime)}
-                  onChange={(d) => set('endTime', dateToTimeString(d))}
-                  error={errors.endTime}
-                />
-              </View>
+            {/* ── Header ── */}
+            <View style={styles.header}>
+              <TouchableOpacity onPress={onClose} hitSlop={HIT_SLOP}>
+                <Text style={styles.cancel}>Cancel</Text>
+              </TouchableOpacity>
+              <Text style={styles.title}>{isEdit ? 'Edit Task' : 'New Task'}</Text>
+              <TouchableOpacity onPress={handleSave} hitSlop={HIT_SLOP}>
+                <Text style={styles.save}>Save</Text>
+              </TouchableOpacity>
             </View>
 
-            {/* ── Priority ── */}
-            <Field label="Priority">
-              <View style={styles.chipRow}>
-                {PRIORITY_OPTIONS.map((p) => (
-                  <TouchableOpacity
-                    key={p}
-                    onPress={() => set('priority', p)}
-                    style={[
-                      styles.chip,
-                      form.priority === p && styles.chipActive,
-                    ]}
-                  >
-                    <Text
+            <ScrollView
+              contentContainerStyle={styles.body}
+              keyboardShouldPersistTaps="handled"
+            >
+              {/* ── Title ── */}
+              <Field label="Title" error={errors.title}>
+                <TextInput
+                  style={[styles.input, errors.title && styles.inputError]}
+                  value={form.title}
+                  onChangeText={(v) => set('title', v)}
+                  placeholder="What needs to get done?"
+                  placeholderTextColor={colors.inkFaint}
+                  returnKeyType="next"
+                  autoFocus={!isEdit}
+                />
+              </Field>
+
+              {/* ── Date ── */}
+              <DateTimeField
+                label="Date"
+                mode="date"
+                value={dateStringToLocalDate(form.date)}
+                onChange={(d) => set('date', formatDateString(d))}
+              />
+
+              {/* ── Time row ── */}
+              <View style={styles.row}>
+                <View style={{ flex: 1 }}>
+                  <DateTimeField
+                    label="Start"
+                    mode="time"
+                    value={timeStringToLocalDate(form.date, form.startTime)}
+                    onChange={(d) => set('startTime', dateToTimeString(d))}
+                  />
+                </View>
+                <Text style={styles.timeSep}>–</Text>
+                <View style={{ flex: 1 }}>
+                  <DateTimeField
+                    label="End"
+                    mode="time"
+                    value={timeStringToLocalDate(form.date, form.endTime)}
+                    onChange={(d) => set('endTime', dateToTimeString(d))}
+                    error={errors.endTime}
+                  />
+                </View>
+              </View>
+
+              {/* ── Priority ── */}
+              <Field label="Priority">
+                <View style={styles.chipRow}>
+                  {PRIORITY_OPTIONS.map((p) => (
+                    <TouchableOpacity
+                      key={p}
+                      onPress={() => set('priority', p)}
                       style={[
-                        styles.chipText,
-                        form.priority === p && styles.chipTextActive,
+                        styles.chip,
+                        form.priority === p && styles.chipActive,
                       ]}
                     >
-                      {p.charAt(0).toUpperCase() + p.slice(1)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </Field>
+                      <Text
+                        style={[
+                          styles.chipText,
+                          form.priority === p && styles.chipTextActive,
+                        ]}
+                      >
+                        {p.charAt(0).toUpperCase() + p.slice(1)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </Field>
 
-            {/* ── Color ── */}
-            <Field label="Color">
-              <View style={styles.colorRow}>
-                {COLOR_OPTIONS.map((c) => (
-                  <TouchableOpacity
-                    key={c}
-                    onPress={() => set('color', c)}
-                    style={[
-                      styles.colorSwatch,
-                      { backgroundColor: c },
-                      form.color === c && styles.colorSwatchActive,
-                    ]}
+              {/* ── Color ── */}
+              <Field label="Color">
+                <View style={styles.colorRow}>
+                  {COLOR_OPTIONS.map((c) => (
+                    <TouchableOpacity
+                      key={c}
+                      onPress={() => set('color', c)}
+                      style={[
+                        styles.colorSwatch,
+                        { backgroundColor: c },
+                        form.color === c && styles.colorSwatchActive,
+                      ]}
+                    />
+                  ))}
+                </View>
+              </Field>
+
+              {/* ── Subtasks ── */}
+              <Field label="Subtasks">
+                {form.subtasks.map((s, i) => (
+                  <View key={i} style={styles.subtaskRow}>
+                    <Text style={styles.subtaskBullet}>·</Text>
+                    <Text style={styles.subtaskText}>{s}</Text>
+                    <TouchableOpacity
+                      onPress={() => removeSubtask(i)}
+                      hitSlop={HIT_SLOP}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Remove subtask ${s}`}
+                    >
+                      <X size={14} color={colors.inkFaint} />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+                <View style={styles.subtaskInputRow}>
+                  <TextInput
+                    style={[styles.input, { flex: 1 }]}
+                    value={form.newSubtask}
+                    onChangeText={(v) => set('newSubtask', v)}
+                    placeholder="Add a subtask…"
+                    placeholderTextColor={colors.inkFaint}
+                    onSubmitEditing={addSubtask}
+                    returnKeyType="done"
+                    blurOnSubmit={false}
                   />
-                ))}
-              </View>
-            </Field>
-
-            {/* ── Subtasks ── */}
-            <Field label="Subtasks">
-              {form.subtasks.map((s, i) => (
-                <View key={i} style={styles.subtaskRow}>
-                  <Text style={styles.subtaskBullet}>·</Text>
-                  <Text style={styles.subtaskText}>{s}</Text>
-                  <TouchableOpacity
-                    onPress={() => removeSubtask(i)}
-                    hitSlop={HIT_SLOP}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Remove subtask ${s}`}
-                  >
-                    <X size={14} color={colors.inkFaint} />
+                  <TouchableOpacity onPress={addSubtask} style={styles.addBtn}>
+                    <Text style={styles.addBtnText}>Add</Text>
                   </TouchableOpacity>
                 </View>
-              ))}
-              <View style={styles.subtaskInputRow}>
-                <TextInput
-                  style={[styles.input, { flex: 1 }]}
-                  value={form.newSubtask}
-                  onChangeText={(v) => set('newSubtask', v)}
-                  placeholder="Add a subtask…"
-                  placeholderTextColor={colors.inkFaint}
-                  onSubmitEditing={addSubtask}
-                  returnKeyType="done"
-                  blurOnSubmit={false}
-                />
-                <TouchableOpacity onPress={addSubtask} style={styles.addBtn}>
-                  <Text style={styles.addBtnText}>Add</Text>
-                </TouchableOpacity>
-              </View>
-            </Field>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+              </Field>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </AppFrame>
     </Modal>
   );
 }

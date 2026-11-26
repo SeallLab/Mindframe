@@ -1,4 +1,5 @@
 import React from "react";
+import { colors, radius, type } from "../../styling/theme";
 
 type FieldMode = "date" | "time";
 
@@ -67,19 +68,27 @@ export function DateTimeField({ label, value, mode, onChange, error }: DateTimeF
 
 const styles: Record<string, React.CSSProperties> = {
   container: { display: "flex", flexDirection: "column", gap: 6, flex: 1 },
-  label: { fontSize: 12, fontWeight: 600, color: "#888780", letterSpacing: 0.6, textTransform: "uppercase" },
+  label: {
+    fontFamily: type.caption.fontFamily,
+    fontSize: 12,
+    fontWeight: 600,
+    color: colors.inkFaint,
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
+  },
   field: {
-    border: "0.5px solid #D3D1C7",
-    borderRadius: 8,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.sm,
     padding: "10px 12px",
     fontSize: 15,
-    color: "#2C2C2A",
-    backgroundColor: "#FAFAF8",
-    fontFamily: "inherit",
-    accentColor: "#534AB7", 
+    color: colors.ink,
+    backgroundColor: colors.surfaceAlt,
+    fontFamily: type.body.fontFamily,
+    accentColor: colors.brand,
+    colorScheme: "dark",
     width: "100%",
     boxSizing: "border-box",
   },
-  fieldError: { borderColor: "#A32D2D" },
-  errorText: { fontSize: 12, color: "#A32D2D", marginTop: 2 },
+  fieldError: { borderColor: colors.stress },
+  errorText: { fontFamily: type.body.fontFamily, fontSize: 12, color: colors.stress, marginTop: 2 },
 };

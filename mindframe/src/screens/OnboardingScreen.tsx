@@ -26,7 +26,7 @@ interface Step {
 const STEPS: Step[] = [
   {
     scene: "dusk",
-    title: "Welcome to focus",
+    title: "Welcome to mindframe",
     body: "This app tracks how you're actually doing, not just what's on your calendar, and uses that to shape what it suggests next.",
   },
   {

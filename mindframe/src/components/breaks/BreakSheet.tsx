@@ -1,18 +1,17 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, PanResponder, ScrollView, Text, View } from "react-native";
+import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Sparkles } from "lucide-react-native";
+import { Sparkles, X } from "lucide-react-native";
 import { breakActivities, BreakActivity } from "../../types/breaks/BreakActivity.types";
 import { BreakActivityCategory } from "../../types/AppEvent.types";
 import { useUserStateStore } from "../../store/useUserStateStore";
 import { ActivityCard } from "../ui/ActivityCard";
-import { IconButton } from "../ui/IconButton";
 import { GradientFill } from "../ui/GradientFill";
 import { HeroHeader } from "../ui/HeroHeader";
 import { EmptyState } from "../ui/EmptyState";
 import { ActiveActivitySession } from "./ActiveActivitySession";
 import { CATEGORY_COLORS, CATEGORY_ICONS, CATEGORY_LABELS } from "../../styling/breaksTheme";
-import { colors } from "../../styling/theme";
+import { colors, spacing } from "../../styling/theme";
 import { styles } from "../../styling/components/breaks/BreakSheet.styles";
 
 type CategoryFilter = "all" | BreakActivityCategory;
@@ -81,36 +80,6 @@ export function BreakSheet({ onClose }: BreakSheetProps) {
     }).start();
   }, [active]);
 
-  const translateY = useRef(new Animated.Value(0)).current;
-  const DISMISS_THRESHOLD = 120;
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dy) > 4,
-      onPanResponderMove: (_, gesture) => {
-        if (gesture.dy > 0) translateY.setValue(gesture.dy);
-      },
-      onPanResponderRelease: (_, gesture) => {
-        if (gesture.dy > DISMISS_THRESHOLD) {
-          Animated.timing(translateY, {
-            toValue: 800,
-            duration: 200,
-            useNativeDriver: true,
-          }).start(() => {
-            onClose();
-          });
-        } else {
-          Animated.spring(translateY, {
-            toValue: 0,
-            useNativeDriver: true,
-            bounciness: 6,
-          }).start();
-        }
-      },
-    })
-  ).current;
-
   const filteredActivities = useMemo(
     () => (filter === "all" ? breakActivities : breakActivities.filter((a) => a.category === filter)),
     [filter]
@@ -145,16 +114,10 @@ export function BreakSheet({ onClose }: BreakSheetProps) {
     <Animated.View
       style={[
         styles.root,
-        { paddingTop: Math.max(insets.top, 12) },
-        { transform: [{ translateY }] },
+        { paddingTop: Math.max(insets.top, 12), backgroundColor: colors.bg },
       ]}
     >
       <GradientFill name="sheet" />
-
-      {/* Drag handle — swipe down to dismiss */}
-      <View style={styles.handleWrap} {...panResponder.panHandlers}>
-        <View style={styles.handle} />
-      </View>
 
       {/* Dawn scene: this is the "restore" half of the app, so it gets the
           warm sunrise rather than the night sky used for state/stats. */}
@@ -163,7 +126,6 @@ export function BreakSheet({ onClose }: BreakSheetProps) {
         height={132}
         title="Take a break"
         subtitle={active ? active.title : "Pick something that fits how you're feeling right now."}
-        right={<IconButton glyph="✕" label="Close" onPress={onClose} />}
       />
 
       <Animated.View style={{ flex: 1, opacity: contentOpacity }}>
@@ -205,6 +167,38 @@ export function BreakSheet({ onClose }: BreakSheetProps) {
           </>
         )}
       </Animated.View>
+
+      <Pressable
+        onPress={onClose}
+        hitSlop={10}
+        accessibilityRole="button"
+        accessibilityLabel="Close"
+        style={({ pressed }) => [
+          local.closeBtn,
+          { top: Math.max(insets.top, 12) + spacing.md },
+          pressed && local.closeBtnPressed,
+        ]}
+      >
+        <X size={18} color={colors.ink} />
+      </Pressable>
     </Animated.View>
   );
 }
+
+const local = StyleSheet.create({
+  closeBtn: {
+    position: "absolute",
+    right: spacing.base,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+    zIndex: 10,
+    elevation: 10,
+  },
+  closeBtnPressed: { opacity: 0.7 },
+});

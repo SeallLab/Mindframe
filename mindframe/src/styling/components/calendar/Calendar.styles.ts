@@ -32,16 +32,6 @@ export const styles = StyleSheet.create({
   filterWrap: {
     flex: 1,
   },
-  expandToggle: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    alignItems: 'center',
-  },
-  expandToggleText: {
-    ...type.bodyStrong,
-    fontSize: 13,
-    color: colors.inkMuted,
-  },
   addBtn: {
     paddingVertical: 10,
     paddingHorizontal: spacing.base,

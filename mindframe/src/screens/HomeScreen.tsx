@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserStateStore } from "../store/useUserStateStore";
 import { useBreakPromptStore } from "../store/useBreakPromptStore";
 import { Recommendation, RecommendationCategory } from "../types/recommendations/Recommendation.types";
+import { AppFrame } from "../components/AppFrame";
 import { Calendar } from "../components/calendar/Calendar";
 import { BreakMiniBar, getBreakEmphasis } from "../components/breaks/BreakMiniBar";
 import { BreakSheet } from "../components/breaks/BreakSheet";
@@ -113,8 +114,10 @@ export function HomeScreen() {
       <BreakMiniBar emphasis={emphasis} onPress={openModal} />
 
       {/* Expanded break sheet — takes over the full screen when opened */}
-      <Modal visible={modalVisible} animationType="slide" onRequestClose={closeModal}>
-        <BreakSheet onClose={closeModal} />
+      <Modal visible={modalVisible} animationType="slide" transparent onRequestClose={closeModal}>
+        <AppFrame transparent>
+          <BreakSheet onClose={closeModal} />
+        </AppFrame>
       </Modal>
     </SafeAreaView>
   );

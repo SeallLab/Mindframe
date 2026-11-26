@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Clock, Timer, Calendar as CalendarIcon } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
+import { AppFrame } from '../AppFrame';
 import { ScheduledTask } from '../../types/Task.types';
 import { TaskStatus } from '../../types/calendar/Calendar.types';
 import { formatDateTime, formatTimeRange, formatDuration } from '../../utils/calendarUtils';
@@ -106,98 +107,100 @@ export function TaskDetailModal({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.safe}>
+      <AppFrame>
+        <SafeAreaView style={styles.safe}>
 
-        {/* ── Header ── */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onClose} hitSlop={HIT_SLOP}>
-            <Text style={styles.closeBtn}>Done</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => onEdit(task)} hitSlop={HIT_SLOP}>
-            <Text style={styles.editBtn}>Edit</Text>
-          </TouchableOpacity>
-        </View>
+          {/* ── Header ── */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={onClose} hitSlop={HIT_SLOP}>
+              <Text style={styles.closeBtn}>Done</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => onEdit(task)} hitSlop={HIT_SLOP}>
+              <Text style={styles.editBtn}>Edit</Text>
+            </TouchableOpacity>
+          </View>
 
-        <ScrollView contentContainerStyle={styles.body}>
+          <ScrollView contentContainerStyle={styles.body}>
 
-          {/* ── Color bar + title ── */}
-          <View style={[styles.colorBar, { backgroundColor: task.color }]} />
-          <Text style={styles.taskTitle}>{task.title}</Text>
+            {/* ── Color bar + title ── */}
+            <View style={[styles.colorBar, { backgroundColor: task.color }]} />
+            <Text style={styles.taskTitle}>{task.title}</Text>
 
-          {/* ── Badges ── */}
-          <View style={styles.badgeRow}>
-            <Badge label={statusCfg.label} color={statusCfg.color} backgroundColor={statusCfg.bg} />
-            <Badge
-              label={`${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} priority`}
-              color={PRIORITY_COLOR[task.priority] ?? colors.inkMuted}
-              backgroundColor={colors.surfaceAlt}
-            />
-            {task.isRecommended && (
-              <Badge label="Recommended" color={colors.brand} backgroundColor={colors.brandSoft} />
+            {/* ── Badges ── */}
+            <View style={styles.badgeRow}>
+              <Badge label={statusCfg.label} color={statusCfg.color} backgroundColor={statusCfg.bg} />
+              <Badge
+                label={`${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} priority`}
+                color={PRIORITY_COLOR[task.priority] ?? colors.inkMuted}
+                backgroundColor={colors.surfaceAlt}
+              />
+              {task.isRecommended && (
+                <Badge label="Recommended" color={colors.brand} backgroundColor={colors.brandSoft} />
+              )}
+            </View>
+
+            {/* ── Time info ── */}
+            <View style={styles.infoBlock}>
+              <InfoRow Icon={Clock} label="Time" value={formatTimeRange(task.startDateTime, task.endDateTime)} />
+              <InfoRow Icon={Timer} label="Duration" value={formatDuration(task.startDateTime, task.endDateTime)} />
+              <InfoRow Icon={CalendarIcon} label="Date" value={formatDateTime(task.startDateTime).split(' · ')[0]} />
+            </View>
+
+            {/* ── Subtasks ── */}
+            {task.subtasks && task.subtasks.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionLabel}>Subtasks</Text>
+                {task.subtasks.map((s, i) => (
+                  <View key={i} style={styles.subtaskRow}>
+                    <View style={[styles.subtaskDot, { backgroundColor: task.color }]} />
+                    <Text style={styles.subtaskText}>{s}</Text>
+                  </View>
+                ))}
+              </View>
             )}
-          </View>
 
-          {/* ── Time info ── */}
-          <View style={styles.infoBlock}>
-            <InfoRow Icon={Clock} label="Time" value={formatTimeRange(task.startDateTime, task.endDateTime)} />
-            <InfoRow Icon={Timer} label="Duration" value={formatDuration(task.startDateTime, task.endDateTime)} />
-            <InfoRow Icon={CalendarIcon} label="Date" value={formatDateTime(task.startDateTime).split(' · ')[0]} />
-          </View>
-
-          {/* ── Subtasks ── */}
-          {task.subtasks && task.subtasks.length > 0 && (
+            {/* ── Actions ── */}
             <View style={styles.section}>
-              <Text style={styles.sectionLabel}>Subtasks</Text>
-              {task.subtasks.map((s, i) => (
-                <View key={i} style={styles.subtaskRow}>
-                  <View style={[styles.subtaskDot, { backgroundColor: task.color }]} />
-                  <Text style={styles.subtaskText}>{s}</Text>
-                </View>
-              ))}
-            </View>
-          )}
+              <Text style={styles.sectionLabel}>Actions</Text>
+              <View style={styles.actionRow}>
+                <ActionButton
+                  label="Complete"
+                  Icon={TASK_ACTION_ICONS.complete}
+                  color={TASK_ACTION_COLORS.complete}
+                  onPress={() => handleAction(() => onComplete(task.id))}
+                  disabled={!isActionable}
+                />
+                <ActionButton
+                  label="Delay"
+                  Icon={TASK_ACTION_ICONS.delay}
+                  color={TASK_ACTION_COLORS.delay}
+                  onPress={() => onRequestDelay(task)}
+                  disabled={!isActionable}
+                />
+                <ActionButton
+                  label="Skip"
+                  Icon={TASK_ACTION_ICONS.skip}
+                  color={TASK_ACTION_COLORS.skip}
+                  onPress={() => handleAction(() => onSkip(task.id))}
+                  disabled={!isActionable}
+                />
+              </View>
 
-          {/* ── Actions ── */}
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Actions</Text>
-            <View style={styles.actionRow}>
-              <ActionButton
-                label="Complete"
-                Icon={TASK_ACTION_ICONS.complete}
-                color={TASK_ACTION_COLORS.complete}
-                onPress={() => handleAction(() => onComplete(task.id))}
-                disabled={!isActionable}
-              />
-              <ActionButton
-                label="Delay"
-                Icon={TASK_ACTION_ICONS.delay}
-                color={TASK_ACTION_COLORS.delay}
-                onPress={() => onRequestDelay(task)}
-                disabled={!isActionable}
-              />
-              <ActionButton
-                label="Skip"
-                Icon={TASK_ACTION_ICONS.skip}
-                color={TASK_ACTION_COLORS.skip}
-                onPress={() => handleAction(() => onSkip(task.id))}
-                disabled={!isActionable}
-              />
+              {isFinished && (
+                <Text style={styles.finishedNote}>
+                  This task is {task.status}. Edit it to reopen.
+                </Text>
+              )}
             </View>
 
-            {isFinished && (
-              <Text style={styles.finishedNote}>
-                This task is {task.status}. Edit it to reopen.
-              </Text>
-            )}
-          </View>
+            {/* ── Delete ── */}
+            <TouchableOpacity onPress={() => onRequestDelete(task)} style={styles.deleteBtn}>
+              <Text style={styles.deleteBtnText}>Delete task</Text>
+            </TouchableOpacity>
 
-          {/* ── Delete ── */}
-          <TouchableOpacity onPress={() => onRequestDelete(task)} style={styles.deleteBtn}>
-            <Text style={styles.deleteBtnText}>Delete task</Text>
-          </TouchableOpacity>
-
-        </ScrollView>
-      </SafeAreaView>
+          </ScrollView>
+        </SafeAreaView>
+      </AppFrame>
     </Modal>
   );
 }

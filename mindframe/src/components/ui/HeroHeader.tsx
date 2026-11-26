@@ -6,8 +6,9 @@
 // background from the screen it sits on, and has no hard edges.
 
 import React from "react";
-import { Text, View, useWindowDimensions } from "react-native";
+import { Text, View } from "react-native";
 import { SceneArt, SceneVariant } from "../art/SceneArt";
+import { useAppWidth } from "../../app/useAppWidth";
 import { styles } from "../../styling/components/ui/HeroHeader.styles";
 
 interface HeroHeaderProps {
@@ -20,7 +21,7 @@ interface HeroHeaderProps {
 }
 
 export function HeroHeader({ variant, title, subtitle, right, height = 148 }: HeroHeaderProps) {
-  const { width } = useWindowDimensions();
+  const width = useAppWidth();
 
   return (
     <View style={[styles.wrap, { height }]}>
